@@ -2,8 +2,8 @@
 <a href="https://gdscnitc.in">
 	<img width="800" src="./GDSCNITC.png" alt="GDSC NITC"/>
 </a>
-	<h2 align="center"> < Insert Project Title Here > </h2>
-	<h4 align="center"> < Insert Project Description Here > </h4>
+	<h2 align="center"> Activity Points Management System </h2>
+	<h4 align="center"> The Activity Points Management System (APMS) is a web-based platform developed for the National Institute of Technology Calicut (NITC) to streamline the management, submission, and verification of student activity points, as mandated in the undergraduate curriculum. APMS serves as a centralized tool for all stakeholders-students, faculty advisors, event organizers, and administrators-to ensure transparent, efficient, and accurate tracking of activity points required for graduation. </h4>
 </p>
 
 ---
@@ -14,21 +14,21 @@
 
 
 ## ✨ Features
-- [ ]  < Feature 1 >
-- [ ]  < Feature 2 >
-- [ ]  < Feature 3 >
-- [ ]  < Feature 4 >
+- [ ]  Role-based Login with NITC email authentication (OAuth/Google Sign-In)
+- [ ]  Activity Point Submission by students via proof upload and Tracking
+- [ ]  Bulk Point Allocation by Coordinators
+- [ ]  Faculty Approval Workflow
 
 ## 💻 Tech Stack 
 
-- < Stack Entry 1>
-- < Stack Entry 2>
-- < Stack Entry 3>
+- React
+- Vite
+- Typescript
 
 ## 🛠 Dependencies
-- < Dependency 1 >
-- < Dependency 2 >
-- < Dependency 3 >
+- React Router DOM
+- React Hook Form
+- Tailwind CSS
 
 ## CONTRIBUTORS
 
