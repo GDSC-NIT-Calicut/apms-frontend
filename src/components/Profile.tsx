@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import userIcon from '../assets/userIco.png';
+import { useNavigate } from 'react-router-dom';
 
 type StudentProfile = {
   name: string;
@@ -14,9 +15,10 @@ type ProfileProps = {
 
 export default function Profile({ compact = false }: ProfileProps) {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('/profile.json') //path to profile info, remove profile.json from public and add auth path here
+    fetch('/profile.json')
       .then((res) => res.json())
       .then((data) => setProfile(data))
       .catch((err) => console.error('Failed to fetch profile:', err));
@@ -25,8 +27,8 @@ export default function Profile({ compact = false }: ProfileProps) {
   const handleLogout = () => {
     const confirmed = window.confirm('Are you sure you want to log out?');
     if (confirmed) {
-      //logout action  
       localStorage.clear();
+      navigate('/login', { replace: true });
     }
   };
 
@@ -96,4 +98,3 @@ export default function Profile({ compact = false }: ProfileProps) {
     </header>
   );
 }
-
