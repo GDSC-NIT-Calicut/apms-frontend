@@ -3,6 +3,8 @@ import { useState } from 'react';
 import Sidebar from "./components/Sidebar";
 import Profile from "./components/Profile";
 import LoginPage from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import SubmitActivity from './pages/SubmitActivity';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -19,11 +21,19 @@ function App() {
           element={
             isLoggedIn ? (
               <div className="flex">
-                <Sidebar />
-                <Profile compact /> {/* remove compact to switch to full profile view and vice-versa */}
-      {/* <div className="flex-1 p-8">
-        <h1 className="text-2xl font-bold">Main Content</h1>
-      </div> */}
+                <Dashboard />
+              </div>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/submit-activity"
+          element={
+            isLoggedIn ? (
+              <div className="flex">
+                <SubmitActivity />
               </div>
             ) : (
               <Navigate to="/login" replace />
