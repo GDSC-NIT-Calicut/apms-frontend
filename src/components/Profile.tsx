@@ -40,7 +40,7 @@ export default function Profile({ compact = false }: ProfileProps) {
         <div
             className={`relative flex items-center justify-between px-8 py-6 text-white
             bg-gradient-to-b from-[#241515] to-[#141a2e] border-b-[2px] border-[rgba(38,134,255,0.4)]
-            ${compact ? 'max-w-full max-h-40' : ''}`}
+            ${compact ? 'max-w-full max-h-40' : 'max-h-65'}`}
         >
 
 
@@ -83,13 +83,13 @@ export default function Profile({ compact = false }: ProfileProps) {
             style={{
                     borderRight: '1px solid',
                     borderBottom: '1px solid',
-                    borderImage: 'linear-gradient(to bottom right, rgba(226,69,61,0.8), rgba(38,134,255,0.6)) 1'
+                    borderImage: 'linear-gradient(to top, rgba(152, 48, 43, 0.8),  rgba(57, 141, 244, 0.6)) 1'
                 }}
         >
             
             <button
             onClick={handleLogout}
-            className={`z-10  mr-10 ${compact ? 'mb-10' : 'mb-80' } flex items-start gap-2 text-lg text-[#E2453D80] hover:text-[#ff7369] px-4 py-2 rounded-lg font-semibold transition`}>
+            className={`z-10  mr-10 ${compact ? 'mb-10' : 'mb-70' } flex items-start gap-2 text-lg text-[#E2453D80] hover:text-[#ff7369] px-4 py-2 rounded-lg font-semibold transition`}>
             <img src={userIcon} alt="icon" className="w-7 h-7 object-contain rounded-full bg-blue-400 shadow-[0_0_10px_rgba(0,132,255,0.5)] mr-1" />
             Logout
             </button>
