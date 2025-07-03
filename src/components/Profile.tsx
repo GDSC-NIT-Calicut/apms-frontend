@@ -11,9 +11,10 @@ type StudentProfile = {
 
 type ProfileProps = {
   compact?: boolean;
+  setIsLoggedIn?: (val:boolean)=>void;
 };
 
-export default function Profile({ compact = false }: ProfileProps) {
+export default function Profile({ compact = false, setIsLoggedIn }: ProfileProps) {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const navigate = useNavigate();
 
@@ -28,6 +29,7 @@ export default function Profile({ compact = false }: ProfileProps) {
     const confirmed = window.confirm('Are you sure you want to log out?');
     if (confirmed) {
       localStorage.clear();
+      setIsLoggedIn?.(false);
       navigate('/login', { replace: true });
     }
   };

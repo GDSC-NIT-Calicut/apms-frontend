@@ -29,7 +29,11 @@ type DashboardData = {
   activity: ActivityData;
 };
 
-export default function Dashboard() {
+type DashboardProps = {
+  setIsLoggedIn: (val:boolean) => void;
+};
+
+export default function Dashboard({setIsLoggedIn}:DashboardProps) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -54,7 +58,7 @@ export default function Dashboard() {
   return (
     <>
       <header className="w-full overflow-hidden">
-        <Profile />
+        <Profile setIsLoggedIn={setIsLoggedIn}/>
       </header>
       <main className="flex mt-2 ml-40 mr-40 gap-55">
 
@@ -100,7 +104,13 @@ function PointRow({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex justify-between w-80 mb-5">
       <span>{label}</span>
-      <span className="border px-4 py-1">{value}</span>
+      <span
+        className="border border-gray-400 px-4 py-1 text-center"
+        style={{ backgroundColor: 'rgba(212, 212, 212, 0.14)', width: '80px' }}
+      >
+        {value}
+    </span>
+
     </div>
   );
 }
