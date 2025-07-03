@@ -1,0 +1,15 @@
+{   "profile": {
+    "name": "Riya Ann",
+    "rollNo": "B23XXXXX",
+    "department": "Electrical Engineering",
+    "faAssigned": "Devesh"
+    }, 
+
+    "activity": {
+    "required": 80,
+    "earned": 40,
+    "instituteCount": 20,
+    "departmentCount": 20,
+    "eligible": true
+    }
+}
