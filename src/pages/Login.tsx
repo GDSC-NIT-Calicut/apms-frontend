@@ -15,6 +15,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log({ email, password, role });
+    localStorage.setItem("isLoggedIn","true");
     onLogin();
     navigate('/dashboard');
   };

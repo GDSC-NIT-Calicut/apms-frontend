@@ -1,5 +1,3 @@
-import Profile from '../components/Profile';
-import Sidebar from '../components/Sidebar';
 import { useState } from 'react';
 
 export default function SubmitActivity() {
@@ -27,16 +25,9 @@ export default function SubmitActivity() {
 
   return (
     <div className="flex">
-      {/* Sidebar */}
-      <aside className="w-64 max-h-screen">
-        <Sidebar />
-      </aside>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
-        {/* Header */}
-        <Profile compact />
-
         {/* Form Section */}
         <section className="flex justify-center items-center flex-col mt-12 px-4">
           <h2 className="text-2xl font-bold bg-gradient-to-r from-[#E2453D] to-[#557FDF] text-transparent bg-clip-text mb-8">
@@ -107,7 +98,7 @@ export default function SubmitActivity() {
             <div className='w-50 ml-30 mt-10 px-[1px] py-[1px] justify-center items-center bg-gradient-to-r from-[#E2453D] to-[#B0DE50] rounded-xl hover:opacity-90'>
                 <button
                 type="submit"
-                className="w-full bg-neutral-600 px-4 py-2 hover:opacity-90 font-semibold rounded-xl"
+                className="w-full bg-neutral-600 px-4 py-2 hover:opacity-90 font-semibold rounded-xl cursor-pointer"
                 >
                 Submit
                 </button>

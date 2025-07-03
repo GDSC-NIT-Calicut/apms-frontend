@@ -1,45 +1,35 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
-import Sidebar from "./components/Sidebar";
-import Profile from "./components/Profile";
+import SidebarLayout from './layouts/SidebarLayout.tsx';
 import LoginPage from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import SubmitActivity from './pages/SubmitActivity';
+import ProtectedRoute from './components/protectedRoute';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(()=>{
+    return localStorage.getItem("isLoggedIn")==="true";
+  });
 
   return (
     <Router>
       <Routes>
-        <Route
-          path="/login"
-          element={<LoginPage onLogin={() => setIsLoggedIn(true)} />}
-        />
-        <Route
-          path="/dashboard"
-          element={
-            isLoggedIn ? (
-              <div className="flex">
-                <Dashboard />
-              </div>
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-        <Route
-          path="/submit-activity"
-          element={
-            isLoggedIn ? (
-              <div className="flex">
-                <SubmitActivity />
-              </div>
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
+        {/* Public Route */}
+        <Route path="/login" element={<LoginPage onLogin={() => setIsLoggedIn(true)} />} />
+
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
+          {/* Dashboard with no sidebar */}
+          <Route path="/dashboard" element={<Dashboard setIsLoggedIn={setIsLoggedIn}/>} />
+
+          {/* Sidebar Layout Routes */}
+          <Route element={<SidebarLayout setIsLoggedIn={setIsLoggedIn}/>}>
+            <Route path="/submit-activity" element={<SubmitActivity />} />
+            {/* Add more routes with sidebar here */}
+          </Route>
+        </Route>
+
+        {/* Fallback */}
         <Route
           path="*"
           element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} replace />}
