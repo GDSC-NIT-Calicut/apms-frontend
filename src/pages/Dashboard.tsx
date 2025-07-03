@@ -56,11 +56,11 @@ export default function Dashboard({setIsLoggedIn}:DashboardProps) {
   if (!data) return <div className="text-red-400 p-4">Error loading dashboard</div>;
 
   return (
-    <>
+    <div className="flex flex-col">
       <header className="w-full overflow-hidden">
         <Profile setIsLoggedIn={setIsLoggedIn}/>
       </header>
-      <main className="flex mt-2 ml-40 mr-40 gap-55">
+      <main className="flex mt-2 ml-40 mr-40 gap-[20%]">
 
         <section className="text-white p-10">
           <h2 className="text-2xl font-bold mb-10">Activity Points</h2>
@@ -89,14 +89,14 @@ export default function Dashboard({setIsLoggedIn}:DashboardProps) {
         </section>
       </main>
 
-      <footer className="relative px-6 py-[32px] bg-gradient-to-b from-[#241515] to-[#141a2e] border-t-[2px] border-[rgba(38,134,255,0.4)] w-full max-h-40">
-        <div className="absolute bottom-[42px] left-[-2px]">
+      <footer className="relative px-6 py-[32px] bg-gradient-to-b from-[#241515] to-[#141a2e] border-t-[2px] border-[rgba(38,134,255,0.4)] w-full min-h-16">
+        <div className="absolute top-[-2px] left-[-2px]">
           <div className={'w-45 h-6 bg-[rgba(38,134,255,0.4)]'} style={{ clipPath: 'polygon(0 0, 0 100%, 100% 0)' }}>
             <div className={'relative bottom-[2px] w-45 h-6 bg-black'} style={{ clipPath: 'polygon(0 0, 0 100%, 100% 0)' }} />
           </div>
         </div>
       </footer>
-    </>
+    </div>
   )
 }
 
