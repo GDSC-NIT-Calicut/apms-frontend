@@ -13,12 +13,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log({ email, password, role });
-    localStorage.setItem('isLoggedIn', 'true');
-    onLogin();
+  e.preventDefault();
+  console.log({ email, password, role });
+  localStorage.setItem('isLoggedIn', 'true');
+  localStorage.setItem('role', role);
+  onLogin();
+
+  if (role === 'Event Organizer') {
+    navigate('/event-dashboard');
+  } else {
     navigate('/dashboard');
-  };
+  }
+};
 
   return (
     <div className="flex flex-col lg:flex-row h-screen bg-black text-white font-poppins">
@@ -103,6 +109,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 >
                   <option value="Student" className="text-black">Student</option>
                   <option value="Faculty" className="text-black">Faculty</option>
+                  <option value="Event Organizer" className="text-black">Event Organizer</option>
                   <option value="Admin" className="text-black">Admin</option>
                 </select>
               </div>

@@ -1,18 +1,25 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
-import SidebarLayout from './layouts/SidebarLayout.tsx';
+import SidebarLayout from './layouts/SidebarLayout';
+import EventSidebarLayout from './layouts/EventSidebarLayout'; // NEW
 import LoginPage from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import SubmitActivity from './pages/SubmitActivity';
 import ProtectedRoute from './components/protectedRoute';
-import PendingRequests from './pages/PendingRequests.tsx';
-import ApprovedRequests from './pages/ApprovedRequests.tsx';
+import PendingRequests from './pages/PendingRequests';
+import ApprovedRequests from './pages/ApprovedRequests';
 import RejectedRequests from './pages/RejectedRequests';
+import EventDashboard from './pages/EventDashboard';
+import SubmitEventRequest from './pages/SubmitEventRequest';
+import AllocatedRequests from './pages/AllocatedRequests';
+import RevokedAllocation from './pages/RevokedAllocation';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(()=>{
-    return localStorage.getItem("isLoggedIn")==="true";
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem("isLoggedIn") === "true";
   });
+
+  const role = localStorage.getItem("role");
 
   return (
     <Router>
@@ -22,17 +29,27 @@ function App() {
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
-          {/* Dashboard with no sidebar */}
-          <Route path="/dashboard" element={<Dashboard setIsLoggedIn={setIsLoggedIn}/>} />
 
-          {/* Sidebar Layout Routes */}
-          <Route element={<SidebarLayout setIsLoggedIn={setIsLoggedIn}/>}>
+          {/* Dashboard with no sidebar */}
+          <Route path="/dashboard" element={<Dashboard setIsLoggedIn={setIsLoggedIn} />} />
+
+          {/* Student/Faculty Sidebar Layout */}
+          <Route element={<SidebarLayout setIsLoggedIn={setIsLoggedIn} />}>
             <Route path="/submit-activity" element={<SubmitActivity />} />
             <Route path="/pending-requests" element={<PendingRequests />} />
             <Route path="/approved-requests" element={<ApprovedRequests />} />
             <Route path="/rejected-requests" element={<RejectedRequests />} />
-            {/* Add more routes with sidebar here */}
           </Route>
+
+          <Route path="/event-dashboard" element={<EventDashboard setIsLoggedIn={setIsLoggedIn} />} />
+
+          {/* Event Organizer Sidebar Layout */}
+          <Route element={<EventSidebarLayout setIsLoggedIn={setIsLoggedIn} />}>
+            <Route path="/submit-event-request" element={<SubmitEventRequest />} />
+            <Route path="/allocated-requests" element={<AllocatedRequests />} />
+            <Route path="/revoked-allocation" element={<RevokedAllocation />} />
+          </Route>
+
         </Route>
 
         {/* Fallback */}

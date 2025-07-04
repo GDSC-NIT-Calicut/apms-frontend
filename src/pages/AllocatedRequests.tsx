@@ -1,7 +1,7 @@
 import React from "react";
-import Cards from "../components/Cards";
+import EventCards from "../components/EventCards";
 
-const rejectedData = [
+const allocatedData = [
   {
     title: "AI Workshop Participation",
     date: "2024-05-12",
@@ -37,20 +37,24 @@ const AllocatedRequests: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white px-4 py-8 flex flex-col items-center">
       <h2 className="text-2xl font-bold bg-gradient-to-r from-[#E2453D] to-[#557FDF] text-transparent bg-clip-text mb-8">
-        Rejected Requests
+        Allocated Requests
       </h2>
 
-      <div className="w-full max-w-6xl flex flex-col items-center">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-30 justify-center">
-          {rejectedData.map((req, idx) => (
-            <div key={idx} className="w-[290px] sm:w-[350px]">
+      <div className="w-full max-w-6xl flex flex-col items-start ml-30">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 gap-y-2 w-full max-w-[1000px] px-4">
+          {allocatedData.map((req, idx) => (
+            <div key={idx}>
+              {/* Only show Title heading above first card */}
               {idx === 0 ? (
-                <h3 className="text-base font-medium mb-5 text-left">Title</h3>
+                <h3 className="text-base font-medium mb-4 text-left">Title</h3>
               ) : (
-                <div className="h-6 mb-5" />
+                <div className="h-6 mb-4" /> // spacer for alignment
               )}
-              <Cards title={req.title} date={formatDate(req.date)} status="Resubmit" />
-              <p className="text-sm text-white mt-2 ml-2">*{req.reason}</p>
+              <EventCards
+                title={req.title}
+                date={formatDate(req.date)}
+                actions={["Revoke Allocation", "Re-Allocate", "Update Details"]}
+              />
             </div>
           ))}
         </div>
