@@ -26,13 +26,13 @@ export default function Sidebar() {
   }, [location.pathname]);
 
   return (
-    <div className="w-64 min-h-screen bg-gradient-to-r from-[rgba(226,69,61,0.15)] to-[rgba(85,127,223,0.2)] relative">
+    <div className="hidden md:block w-64 min-h-screen bg-gradient-to-r from-[rgba(226,69,61,0.15)] to-[rgba(85,127,223,0.2)] relative">
       <div className="absolute top-0 right-0 w-[2px] h-full bg-[rgba(38,134,255,0.4)]" />
       <div
         className="absolute left-0 w-full h-[1.5px] bg-[rgba(38,134,255,0.2)]"
         style={{ top: "80px" }}
       />
-
+  
       <nav className="flex flex-col gap-4 mt-[25vh]">
         {navItems.map(({ label, path }) => (
           <button
@@ -53,5 +53,5 @@ export default function Sidebar() {
         ))}
       </nav>
     </div>
-  );
+  );  
 }

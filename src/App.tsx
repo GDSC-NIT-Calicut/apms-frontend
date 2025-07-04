@@ -5,6 +5,8 @@ import LoginPage from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import SubmitActivity from './pages/SubmitActivity';
 import ProtectedRoute from './components/protectedRoute';
+import PendingRequests from './pages/PendingRequests.tsx';
+import ApprovedRequests from './pages/ApprovedRequests.tsx';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(()=>{
@@ -25,6 +27,8 @@ function App() {
           {/* Sidebar Layout Routes */}
           <Route element={<SidebarLayout setIsLoggedIn={setIsLoggedIn}/>}>
             <Route path="/submit-activity" element={<SubmitActivity />} />
+            <Route path="/pending-requests" element={<PendingRequests />} />
+            <Route path="/approved-requests" element={<ApprovedRequests />} />
             {/* Add more routes with sidebar here */}
           </Route>
         </Route>
