@@ -11,7 +11,9 @@ export default function SidebarLayout({ setIsLoggedIn }: SidebarLayoutProps) {
     <div className="flex">
       <Sidebar />
       <div className="flex-1">
-        <Profile compact setIsLoggedIn={setIsLoggedIn} />
+          <div className="hidden md:block">
+            <Profile compact setIsLoggedIn={setIsLoggedIn} />
+          </div>
         <Outlet />
       </div>
     </div>

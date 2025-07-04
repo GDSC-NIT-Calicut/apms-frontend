@@ -7,6 +7,7 @@ import SubmitActivity from './pages/SubmitActivity';
 import ProtectedRoute from './components/protectedRoute';
 import PendingRequests from './pages/PendingRequests.tsx';
 import ApprovedRequests from './pages/ApprovedRequests.tsx';
+import RejectedRequests from './pages/RejectedRequests';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(()=>{
@@ -29,6 +30,7 @@ function App() {
             <Route path="/submit-activity" element={<SubmitActivity />} />
             <Route path="/pending-requests" element={<PendingRequests />} />
             <Route path="/approved-requests" element={<ApprovedRequests />} />
+            <Route path="/rejected-requests" element={<RejectedRequests />} />
             {/* Add more routes with sidebar here */}
           </Route>
         </Route>
