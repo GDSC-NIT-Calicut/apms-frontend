@@ -55,7 +55,7 @@ function App() {
         {/* Fallback */}
         <Route
           path="*"
-          element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} replace />}
+          element={<Navigate to={isLoggedIn ? { pathname: role === "Event Organizer" ? "/event-dashboard" : "/dashboard" } : "/login"} replace />}
         />
       </Routes>
     </Router>
