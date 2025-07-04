@@ -47,7 +47,7 @@ function App() {
           <Route element={<EventSidebarLayout setIsLoggedIn={setIsLoggedIn} />}>
             <Route path="/submit-event-request" element={<SubmitEventRequest />} />
             <Route path="/allocated-requests" element={<AllocatedRequests />} />
-            <Route path="/revoked-allocation" element={<RevokedAllocation />} />
+            <Route path="/revoked-allocations" element={<RevokedAllocation />} />
           </Route>
 
         </Route>
