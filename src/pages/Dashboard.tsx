@@ -89,7 +89,7 @@ export default function Dashboard({setIsLoggedIn}:DashboardProps) {
         </section>
       </main>
 
-      <footer className="relative px-6 py-[32px] bg-gradient-to-b from-[#241515] to-[#141a2e] border-t-[2px] border-[rgba(38,134,255,0.4)] w-full min-h-16">
+      <footer className="absolute bottom-0 mt-auto px-6 py-[32px] bg-gradient-to-b from-[#241515] to-[#141a2e] border-t-[2px] border-[rgba(38,134,255,0.4)] w-full min-h-16">
         <div className="absolute top-[-2px] left-[-2px]">
           <div className={'w-45 h-6 bg-[rgba(38,134,255,0.4)]'} style={{ clipPath: 'polygon(0 0, 0 100%, 100% 0)' }}>
             <div className={'relative bottom-[2px] w-45 h-6 bg-black'} style={{ clipPath: 'polygon(0 0, 0 100%, 100% 0)' }} />
