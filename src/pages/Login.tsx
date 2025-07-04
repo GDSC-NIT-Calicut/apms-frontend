@@ -13,43 +13,46 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log({ email, password, role });
-    localStorage.setItem("isLoggedIn","true");
-    onLogin();
+  e.preventDefault();
+  console.log({ email, password, role });
+  localStorage.setItem('isLoggedIn', 'true');
+  localStorage.setItem('role', role);
+  onLogin();
+
+  if (role === 'Event Organizer') {
+    navigate('/event-dashboard');
+  } else {
     navigate('/dashboard');
-  };
+  }
+};
 
   return (
-    <div className="flex h-screen bg-black text-white font-poppins">
-      <div className="flex-1 flex flex-col justify-center items-center text-center p-8">
+    <div className="flex flex-col lg:flex-row h-screen bg-black text-white font-poppins">
+      
+      <div className="hidden lg:flex flex-1 flex-col justify-center items-center text-center p-8">
         <h1
           className="text-4xl font-bold bg-clip-text text-transparent leading-tight"
-          style={{ backgroundImage: 'linear-gradient(to right, #E2453E, #557FDF, #2EA14D, #D1B712)' }}
+          style={{
+            backgroundImage: 'linear-gradient(to right, #E2453E, #557FDF, #2EA14D, #D1B712)',
+          }}
         >
           Welcome to the Activity Point Management Portal
         </h1>
         <p
           className="mt-7 text-lg bg-clip-text text-transparent tracking-wide"
-          style={{ backgroundImage: 'linear-gradient(to right, #A24DA0, #557FDF, #2EA14D)' }}
+          style={{
+            backgroundImage: 'linear-gradient(to right, #A24DA0, #557FDF, #2EA14D)',
+          }}
         >
           Track. <span>Verify.</span> Achieve.
         </p>
       </div>
 
-      <div className="flex-1 flex justify-center items-center p-8">
-        <div
-          className="relative w-[500px] h-[530px] p-8 flex flex-col items-center justify-center text-center"
-          style={{
-            backgroundImage: `url(${borderImage})`,
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: '100% 100%',
-            backgroundPosition: 'center',
-          }}
-        >
-          <div className="w-full max-w-sm flex flex-col items-center">
+      <div className="flex-1 flex justify-center items-center p-6 sm:p-8">
+        <div className="relative w-full max-w-[500px] h-[80vh] p-6 sm:p-8 flex flex-col justify-center items-center gap-6 text-center bg-none lg:bg-[url('/src/assets/border.png')] bg-no-repeat bg-center bg-[length:100%_100%]">
+          <div className="w-full flex flex-col items-center">
             <h2
-              className="text-3xl font-bold text-center mb-8 mt-8"
+              className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 mt-4 sm:mt-8"
               style={{
                 backgroundImage: 'linear-gradient(to right, #A24DA0, #557FDF, #2EA14D)',
                 WebkitBackgroundClip: 'text',
@@ -60,7 +63,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </h2>
 
             <form onSubmit={handleSubmit} className="flex flex-col space-y-6 w-full items-center">
-              <div className="flex flex-col w-3/4 items-start">
+              <div className="flex flex-col w-full px-4 sm:w-3/4 items-start">
                 <label htmlFor="email" className="text-sm mb-1">Email address</label>
                 <input
                   type="email"
@@ -68,12 +71,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="px-4 py-2 text-white placeholder-gray-500 w-full"
-                  style={{ backgroundColor: 'rgba(212, 212, 212, 0.14)', border: '1px solid #424242' }}
+                  style={{
+                    backgroundColor: 'rgba(212, 212, 212, 0.14)',
+                    border: '1px solid #424242',
+                  }}
                   required
                 />
               </div>
 
-              <div className="flex flex-col w-3/4 items-start">
+              <div className="flex flex-col w-full px-4 sm:w-3/4 items-start">
                 <label htmlFor="password" className="text-sm mb-1">Password</label>
                 <input
                   type="password"
@@ -81,28 +87,39 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="px-4 py-2 text-white placeholder-gray-500 w-full"
-                  style={{ backgroundColor: 'rgba(212, 212, 212, 0.14)', border: '1px solid #424242' }}
+                  style={{
+                    backgroundColor: 'rgba(212, 212, 212, 0.14)',
+                    border: '1px solid #424242',
+                  }}
                   required
                 />
               </div>
-              <div className="flex flex-col w-3/4 items-start">
+
+              <div className="flex flex-col w-full px-4 sm:w-3/4 items-start">
                 <label htmlFor="role" className="text-sm mb-1">Role</label>
                 <select
                   id="role"
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
                   className="px-4 py-2 text-white w-full"
-                  style={{ backgroundColor: 'rgba(212, 212, 212, 0.14)', border: '1px solid #424242' }}
+                  style={{
+                    backgroundColor: 'rgba(212, 212, 212, 0.14)',
+                    border: '1px solid #424242',
+                  }}
                 >
-                <option value="Student" className="text-black">Student</option>
-                <option value="Faculty" className="text-black">Faculty</option>
-                <option value="Admin" className="text-black">Admin</option>
+                  <option value="Student" className="text-black">Student</option>
+                  <option value="Faculty" className="text-black">Faculty</option>
+                  <option value="Event Organizer" className="text-black">Event Organizer</option>
+                  <option value="Admin" className="text-black">Admin</option>
                 </select>
               </div>
+
               <button
                 type="submit"
-                className="w-1/2 py-2 mt-10 mb-10 text-white font-semibold cursor-pointer"
-                style={{ backgroundImage: 'linear-gradient(to right, #E2453E, #557FDF)' }}
+                className="w-3/4 sm:w-1/2 py-2 mt-6 mb-6 text-white font-semibold cursor-pointer"
+                style={{
+                  backgroundImage: 'linear-gradient(to right, #E2453E, #557FDF)',
+                }}
               >
                 Login
               </button>

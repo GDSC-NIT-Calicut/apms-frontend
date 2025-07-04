@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import EventSidebar from "../components/EventSidebar";
 import Profile from "../components/Profile";
 
 interface SidebarLayoutProps {
@@ -9,7 +9,7 @@ interface SidebarLayoutProps {
 export default function SidebarLayout({ setIsLoggedIn }: SidebarLayoutProps) {
   return (
     <div className="flex">
-      <Sidebar />
+      <EventSidebar />
       <div className="flex-1">
           <div className="hidden md:block">
             <Profile compact setIsLoggedIn={setIsLoggedIn} />
