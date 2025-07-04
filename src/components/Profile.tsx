@@ -12,9 +12,10 @@ type StudentProfile = {
 type ProfileProps = {
   compact?: boolean;
   setIsLoggedIn?: (val:boolean)=>void;
+  user?: string;
 };
 
-export default function Profile({ compact = false, setIsLoggedIn }: ProfileProps) {
+export default function Profile({ compact = false, setIsLoggedIn, user = 'Student' }: ProfileProps) {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const navigate = useNavigate();
 
@@ -69,7 +70,7 @@ export default function Profile({ compact = false, setIsLoggedIn }: ProfileProps
             </section>
           ) : (
             <section className='mb-10'>
-              <h1 className="text-2xl font-bold mt-10 mb-5 leading-loose">Student Dashboard</h1>
+              <h1 className="text-2xl font-bold mt-10 mb-5 leading-loose">{user} Dashboard</h1>
               <dl className="space-y-1 text-1.5sm">
                 <div><span className="font-bold leading-loose">Name:</span> {profile.name}</div>
                 <div><span className="font-bold leading-loose">Roll No:</span> {profile.rollNo}</div>
