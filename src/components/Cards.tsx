@@ -3,13 +3,14 @@ import React from "react";
 type CardProps = {
   title: string;
   date: string;
-  status: "In process" | "Approved" | "Resubmit";
+  status: "In process" | "Approved" | "Resubmit" | "Re Allocate";
 };
 
 const statusStyles: Record<CardProps["status"], string> = {
   "In process": "bg-gradient-to-r from-[#992622] to-[#1E3A8A] text-white",
   "Approved": "bg-gradient-to-r from-[#992622] to-[#1E3A8A] text-white",
   "Resubmit": "bg-gradient-to-r from-[#992622] to-[#1E3A8A] text-white",
+  "Re Allocate": "bg-gradient-to-r from-[#992622] to-[#1E3A8A] text-white",
 };
 
 const Cards: React.FC<CardProps> = ({ title, date, status }) => {
