@@ -110,7 +110,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   <option value="Student" className="text-black">Student</option>
                   <option value="Faculty" className="text-black">Faculty</option>
                   <option value="Event Organizer" className="text-black">Event Organizer</option>
-                  <option value="Admin" className="text-black">Admin</option>
                 </select>
               </div>
 

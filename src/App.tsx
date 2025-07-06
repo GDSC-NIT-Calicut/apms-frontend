@@ -30,10 +30,8 @@ function App() {
         {/* Protected Routes */}
         <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
 
-          {/* Dashboard with no sidebar */}
           <Route path="/dashboard" element={<Dashboard setIsLoggedIn={setIsLoggedIn} />} />
 
-          {/* Student/Faculty Sidebar Layout */}
           <Route element={<SidebarLayout setIsLoggedIn={setIsLoggedIn} />}>
             <Route path="/submit-activity" element={<SubmitActivity />} />
             <Route path="/pending-requests" element={<PendingRequests />} />
@@ -43,9 +41,8 @@ function App() {
 
           <Route path="/event-dashboard" element={<EventDashboard setIsLoggedIn={setIsLoggedIn} />} />
 
-          {/* Event Organizer Sidebar Layout */}
           <Route element={<EventSidebarLayout setIsLoggedIn={setIsLoggedIn} />}>
-            <Route path="/submit-event-request" element={<SubmitEventRequest />} />
+            <Route path="/submit-requests" element={<SubmitEventRequest />} />
             <Route path="/allocated-requests" element={<AllocatedRequests />} />
             <Route path="/revoked-allocations" element={<RevokedAllocation />} />
           </Route>

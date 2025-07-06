@@ -7,14 +7,13 @@ export default function EventSidebar() {
 
   const navItems: { label: string; path: string }[] = [
     { label: "Dashboard", path: "/event-dashboard" },
-    { label: "Submit Requests", path: "/submit-event-request" },
+    { label: "Submit Requests", path: "/submit-requests" },
     { label: "Allocated Requests", path: "/allocated-requests" },
-    { label: "Revoked Allocation", path: "/revoked-allocation" }
+    { label: "Revoked Allocation", path: "/revoked-allocations" }
   ];
 
   const [selected, setSelected] = useState("Dashboard");
 
-  // Highlight correct item on page load or URL change
   useEffect(() => {
     const current = navItems.find((item) =>
       location.pathname.startsWith(item.path)
