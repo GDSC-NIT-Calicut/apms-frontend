@@ -64,13 +64,13 @@ export default function Profile({ compact = false, setIsLoggedIn, graduationElig
   const formattedOrganization = toTitleCase(rawOrganization);
 
   return (
-    /* Global Fix: Auto-hides large headers on mobile, but preserves compact profile inside sidebar mobile drawer */
-    <header className={`relative w-full overflow-hidden ${!compact ? 'hidden md:block' : ''}`}>
-      {/* Main Adaptive Layout Wrapper Frame - Restored to static top grid alignments */}
+    /* Global Fix: Large profile cards are no longer blindly hidden; they style neatly on mobile! */
+    <header className="relative w-full overflow-hidden">
+      {/* Main Adaptive Layout Wrapper Frame */}
       <div
         className={`relative flex flex-col sm:flex-row items-center sm:items-start justify-between px-6 sm:px-8 py-6 text-white
             bg-gradient-to-b from-[#241515] to-[#141a2e] border-b-[2px] border-[rgba(38,134,255,0.4)] gap-6
-            ${compact ? 'max-w-full' : 'min-h-[180px]'}`}
+            ${compact ? 'max-w-full' : 'min-h-[140px] sm:min-h-[180px]'}`}
       >
         {/* Triangle background accent clip */}
         <div className="absolute bottom-[-3px] left-[-2px] hidden sm:block">
@@ -87,8 +87,8 @@ export default function Profile({ compact = false, setIsLoggedIn, graduationElig
 
         {/* Left Section: Avatar & User Metadata */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 z-10 text-center sm:text-left w-full sm:w-auto">
-          <figure className="w-16 h-16 rounded-full bg-blue-400 shadow-[0_0_10px_rgba(0,132,255,0.5)] flex items-center justify-center overflow-hidden flex-shrink-0">
-            <img src={userIcon} alt="User" className="w-16 h-16 object-contain" />
+          <figure className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-400 shadow-[0_0_10px_rgba(0,132,255,0.5)] flex items-center justify-center overflow-hidden flex-shrink-0">
+            <img src={userIcon} alt="User" className="w-full h-full object-contain" />
           </figure>
 
           {compact ? (
@@ -105,7 +105,8 @@ export default function Profile({ compact = false, setIsLoggedIn, graduationElig
             </section>
           ) : (
             <section className="flex flex-col items-center sm:items-start max-w-full overflow-hidden">
-              <h1 className="text-xl sm:text-2xl font-bold mt-1 mb-2 leading-snug bg-gradient-to-r from-[#E2453D] via-[#916296] to-[#557FDF] bg-clip-text text-transparent tracking-wide break-words text-center sm:text-left max-w-full">
+              {/* Added adaptive padding-left on mobile viewports to leave room for the absolute hamburger icon buttons */}
+              <h1 className="text-xl sm:text-2xl font-bold mt-1 mb-2 leading-snug bg-gradient-to-r from-[#E2453D] via-[#916296] to-[#557FDF] bg-clip-text text-transparent tracking-wide break-words text-center sm:text-left max-w-full pl-10 sm:pl-0">
                 Welcome, {formattedName}
               </h1>
               
