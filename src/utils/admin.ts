@@ -244,7 +244,7 @@ export const bulkRemoveUsers = async (file: File): Promise<any> => {
 export const removeSingleUser = async (email: string): Promise<any> => {
   try {
     const response = await apiFetch('/api/admin/remove-user', {
-      method: 'DELETE',
+      method: 'POST',
       body: JSON.stringify({ email }),
     });
     return await handleApiResponse(response, 'Remove single user');
