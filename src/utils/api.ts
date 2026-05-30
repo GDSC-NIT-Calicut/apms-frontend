@@ -22,33 +22,26 @@ export const defaultFetchOptions = {
  * @param operation - Name of the operation for error messages
  * @returns Parsed JSON response
  */
-export const handleApiResponse = async (
-  response: Response,
-  operation: string = 'API call'
-) => {
-  if (!response.ok) {
-    let errorMessage = `${operation} failed: ${response.statusText}`;
-
-    // Handle specific HTTP status codes
-    if (response.status === 401) {
-      errorMessage = 'Unauthorized - Please login again';
-    } else if (response.status === 403) {
-      errorMessage = 'Forbidden - Access denied';
-    } else if (response.status === 404) {
-      errorMessage = `${operation} - Resource not found`;
-    } else if (response.status === 500) {
-      errorMessage = 'Server error - Please try again later';
-    }
-
-    throw new Error(errorMessage);
+export const handleApiResponse = async (response: Response, context: string) => {
+  // If request is 2xx, return data cleanly
+  if (response.ok) {
+    return await response.json();
   }
 
-  try {
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    throw new Error(`${operation} - Failed to parse response`);
+  // Parse the error payload sent by the backend controller
+  const errorData = await response.json().catch(() => ({}));
+
+  // Combine backend descriptions if available (e.g., "Registration failed: duplicate key...")
+  const failureMessage = errorData.error 
+    ? `${errorData.message}: ${errorData.error}` 
+    : (errorData.message || `${context} failed`);
+
+  // Fallback to generic text ONLY if the backend didn't send a body payload
+  if (response.status === 500 && !errorData.message) {
+    throw new Error('Server error - Please try again later');
   }
+
+  throw new Error(failureMessage);
 };
 
 /**
