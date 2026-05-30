@@ -11,7 +11,7 @@ import EditEventOrganizerModal from '../components/admin/EditEventOrganizerModal
 import EditAdminModal from '../components/admin/EditAdminModal';
 import BulkUploadModal from '../components/admin/BulkUploadModal';
 import BulkRemoveModal from '../components/admin/BulkRemoveModal';
-import RemoveSingleUserModal from '../components/admin/RemoveSingleUserModal.tsx';
+import RemoveSingleUserModal from '../components/admin/RemoveSingleUserModal';
 
 type AdminDashboardProps = {
   setIsLoggedIn: (val: boolean) => void;
