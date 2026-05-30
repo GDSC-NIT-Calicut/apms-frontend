@@ -27,7 +27,7 @@ type ModalType =
 export default function AdminDashboard({ setIsLoggedIn }: AdminDashboardProps) {
   const { profile, loading, error } = useUserProfile();
   const [activeModal, setActiveModal] = useState<ModalType>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [/*refreshKey*/, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const handleAdminAction = (event: Event) => {
