@@ -1,12 +1,10 @@
 import { useState } from 'react';
-import Profile from '../components/Profile';
-import Sidebar from '../components/Sidebar';
 
 type FacultyAssignPointsProps = {
   setIsLoggedIn: (val: boolean) => void;
 };
 
-export default function FacultyAssignPoints({ setIsLoggedIn }: FacultyAssignPointsProps) {
+export default function FacultyAssignPoints({ /*setIsLoggedIn*/ }: FacultyAssignPointsProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -63,95 +61,87 @@ export default function FacultyAssignPoints({ setIsLoggedIn }: FacultyAssignPoin
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0d1117]">
-      <header className="w-full overflow-hidden">
-        <Profile setIsLoggedIn={setIsLoggedIn} user="Faculty" />
-      </header>
+    <div className="w-full min-h-screen bg-[#0d1117]">
+      {/* Forms map perfectly into the global application wrapper schema shell layout */}
+      <main className="flex-grow p-5 sm:p-10 text-white max-w-3xl mx-auto w-full">
+        <h1 className="text-3xl sm:text-4xl font-extrabold mb-6 bg-gradient-to-r from-[#E2453D] via-[#916296] to-[#557FDF] bg-clip-text text-transparent tracking-tight">
+          Assign Points
+        </h1>
 
-      <div className="flex flex-col md:flex-row flex-grow w-full">
-        <Sidebar />
+        {error && <div className="bg-red-950/40 border border-red-900/50 text-red-400 px-4 py-3 rounded-xl text-sm font-medium mb-5">{error}</div>}
+        {success && <div className="bg-green-950/40 border border-green-900/50 text-green-400 px-4 py-3 rounded-xl text-sm font-medium mb-5">{success}</div>}
 
-        <main className="flex-grow p-5 sm:p-10 text-white max-w-3xl mx-auto w-full">
-          <h1 className="text-3xl sm:text-4xl font-extrabold mb-6 bg-gradient-to-r from-[#E2453D] via-[#916296] to-[#557FDF] bg-clip-text text-transparent tracking-tight">
-            Assign Points
-          </h1>
+        <div className="bg-[#161b22]/40 border border-gray-800 rounded-2xl p-5 sm:p-8 shadow-xl">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-gray-300 font-semibold mb-1.5 text-sm">Student Roll Number</label>
+              <input
+                type="text"
+                name="roll_number"
+                value={formData.roll_number}
+                onChange={handleInputChange}
+                placeholder="e.g., B230658CS"
+                className="w-full bg-[#0d1117] text-white px-4 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 transition-all uppercase placeholder-gray-700 text-sm font-medium"
+              />
+            </div>
 
-          {error && <div className="bg-red-950/40 border border-red-900/50 text-red-400 px-4 py-3 rounded-xl text-sm font-medium mb-5">{error}</div>}
-          {success && <div className="bg-green-950/40 border border-green-900/50 text-green-400 px-4 py-3 rounded-xl text-sm font-medium mb-5">{success}</div>}
-
-          <div className="bg-[#161b22]/40 border border-gray-800 rounded-2xl p-5 sm:p-8 shadow-xl">
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-300 font-semibold mb-1.5 text-sm">Student Roll Number</label>
+                <label className="block text-gray-300 font-semibold mb-1.5 text-sm">Event Date</label>
                 <input
-                  type="text"
-                  name="roll_number"
-                  value={formData.roll_number}
+                  type="date"
+                  name="event_date"
+                  value={formData.event_date}
                   onChange={handleInputChange}
-                  placeholder="e.g., B230658CS"
-                  className="w-full bg-[#0d1117] text-white px-4 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 transition-all uppercase placeholder-gray-700 text-sm font-medium"
+                  style={{ colorScheme: 'dark' }}
+                  className="w-full bg-[#0d1117] text-white px-4 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 transition-all text-sm font-medium cursor-pointer"
                 />
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-300 font-semibold mb-1.5 text-sm">Event Date</label>
-                  <input
-                    type="date"
-                    name="event_date"
-                    value={formData.event_date}
-                    onChange={handleInputChange}
-                    // CRITICAL UPDATE: Forced dark-scheme styling tells browser engines to use native white iconography
-                    style={{ colorScheme: 'dark' }}
-                    className="w-full bg-[#0d1117] text-white px-4 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 transition-all text-sm font-medium cursor-pointer"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-300 font-semibold mb-1.5 text-sm">Points Awarded</label>
-                  <input
-                    type="number"
-                    name="points"
-                    value={formData.points}
-                    onChange={handleInputChange}
-                    placeholder="e.g., 15"
-                    min="1"
-                    className="w-full bg-[#0d1117] text-white px-4 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 transition-all placeholder-gray-700 text-sm font-medium"
-                  />
-                </div>
-              </div>
-
               <div>
-                <label className="block text-gray-300 font-semibold mb-1.5 text-sm">Event Description / Name</label>
+                <label className="block text-gray-300 font-semibold mb-1.5 text-sm">Points Awarded</label>
                 <input
-                  type="text"
-                  name="event_name"
-                  value={formData.event_name}
+                  type="number"
+                  name="points"
+                  value={formData.points}
                   onChange={handleInputChange}
-                  placeholder="e.g., Tathva Workshop Coordinator"
+                  placeholder="e.g., 15"
+                  min="1"
                   className="w-full bg-[#0d1117] text-white px-4 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 transition-all placeholder-gray-700 text-sm font-medium"
                 />
               </div>
+            </div>
 
-              <div className="flex gap-4 pt-3 flex-col sm:flex-row">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 order-1 sm:order-2 py-3.5 bg-gradient-to-r from-[#E2453D] to-[#557FDF] hover:opacity-95 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition-all uppercase text-xs tracking-wider cursor-pointer"
-                >
-                  {loading ? 'Assigning...' : 'Assign Points'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ roll_number: '', event_name: '', event_date: '', points: '' })}
-                  className="flex-1 order-2 sm:order-1 py-3.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold rounded-xl border border-gray-700/60 transition-all uppercase text-xs tracking-wider cursor-pointer"
-                >
-                  Clear Form
-                </button>
-              </div>
-            </form>
-          </div>
-        </main>
-      </div>
+            <div>
+              <label className="block text-gray-300 font-semibold mb-1.5 text-sm">Event Description / Name</label>
+              <input
+                type="text"
+                name="event_name"
+                value={formData.event_name}
+                onChange={handleInputChange}
+                placeholder="e.g., Tathva Workshop Coordinator"
+                className="w-full bg-[#0d1117] text-white px-4 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 transition-all placeholder-gray-700 text-sm font-medium"
+              />
+            </div>
+
+            <div className="flex gap-4 pt-3 flex-col sm:flex-row">
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 order-1 sm:order-2 py-3.5 bg-gradient-to-r from-[#E2453D] to-[#557FDF] hover:opacity-95 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition-all uppercase text-xs tracking-wider cursor-pointer"
+              >
+                {loading ? 'Assigning...' : 'Assign Points'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ roll_number: '', event_name: '', event_date: '', points: '' })}
+                className="flex-1 order-2 sm:order-1 py-3.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold rounded-xl border border-gray-700/60 transition-all uppercase text-xs tracking-wider cursor-pointer"
+              >
+                Clear Form
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
     </div>
   );
 }
