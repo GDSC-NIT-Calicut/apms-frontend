@@ -1,133 +1,129 @@
-import React, { useState } from 'react';
-import borderImage from '../assets/border.png';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { initiateGoogleAuth } from '../utils/auth';
+import { isAuthenticated } from '../utils/user';
 
 interface LoginPageProps {
   onLogin: () => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('Student');
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  console.log({ email, password, role });
-  localStorage.setItem('isLoggedIn', 'true');
-  localStorage.setItem('role', role);
-  onLogin();
+  useEffect(() => {
+    const checkAuthAndInitiate = async () => {
+      try {
+        // Check if user has valid cookie from backend
+        const authenticated = await isAuthenticated();
 
-  if (role === 'Event Organizer') {
-    navigate('/event-dashboard');
-  } else {
-    navigate('/dashboard');
-  }
-};
+        if (authenticated) {
+          // User has valid cookie, they're already logged in
+          console.log('User already authenticated via cookie');
+          localStorage.setItem('isLoggedIn', 'true');
+          onLogin();
+          // App.tsx will handle redirect to appropriate dashboard
+          navigate('/dashboard'); // This will be redirected by App.tsx based on role
+        } else {
+          // No valid cookie, automatically initiate Google auth
+          console.log('No valid cookie found, initiating Google auth');
+          setIsCheckingAuth(false);
+          initiateGoogleAuth();
+        }
+      } catch (err) {
+        console.error('Auth check failed:', err);
+        setError('Failed to check authentication. Please try again.');
+        setIsCheckingAuth(false);
+      }
+    };
 
-  return (
-    <div className="flex flex-col lg:flex-row h-screen bg-black text-white font-poppins">
-      
-      <div className="hidden lg:flex flex-1 flex-col justify-center items-center text-center p-8">
-        <h1
-          className="text-4xl font-bold bg-clip-text text-transparent leading-tight"
-          style={{
-            backgroundImage: 'linear-gradient(to right, #E2453E, #557FDF, #2EA14D, #D1B712)',
-          }}
-        >
-          Welcome to the Activity Point Management Portal
-        </h1>
-        <p
-          className="mt-7 text-lg bg-clip-text text-transparent tracking-wide"
-          style={{
-            backgroundImage: 'linear-gradient(to right, #A24DA0, #557FDF, #2EA14D)',
-          }}
-        >
-          Track. <span>Verify.</span> Achieve.
-        </p>
+    checkAuthAndInitiate();
+  }, [onLogin, navigate]);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex flex-col lg:flex-row h-screen bg-black text-white font-poppins">
+        {/* Left side - Branding */}
+        <div className="hidden lg:flex flex-1 flex-col justify-center items-center text-center p-8">
+          <h1
+            className="text-4xl font-bold bg-clip-text text-transparent leading-tight"
+            style={{
+              backgroundImage: 'linear-gradient(to right, #E2453E, #557FDF, #2EA14D, #D1B712)',
+            }}
+          >
+            Welcome to the Activity Point Management Portal
+          </h1>
+          <p
+            className="mt-7 text-lg bg-clip-text text-transparent tracking-wide"
+            style={{
+              backgroundImage: 'linear-gradient(to right, #A24DA0, #557FDF, #2EA14D)',
+            }}
+          >
+            Track. <span>Verify.</span> Achieve.
+          </p>
+        </div>
+
+        {/* Right side - Loading */}
+        <div className="flex-1 flex justify-center items-center p-6 sm:p-8">
+          <div className="relative w-full max-w-[500px] h-auto min-h-[80vh] p-6 sm:p-8 flex flex-col justify-center items-center gap-6 text-center bg-none lg:bg-[url('/src/assets/border.png')] bg-no-repeat bg-center bg-[length:100%_100%]">
+            <div className="w-full flex flex-col items-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+              <p className="text-gray-400">Checking authentication...</p>
+            </div>
+          </div>
+        </div>
       </div>
+    );
+  }
 
-      <div className="flex-1 flex justify-center items-center p-6 sm:p-8">
-        <div className="relative w-full max-w-[500px] h-[80vh] p-6 sm:p-8 flex flex-col justify-center items-center gap-6 text-center bg-none lg:bg-[url('/src/assets/border.png')] bg-no-repeat bg-center bg-[length:100%_100%]">
-          <div className="w-full flex flex-col items-center">
-            <h2
-              className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 mt-4 sm:mt-8"
-              style={{
-                backgroundImage: 'linear-gradient(to right, #A24DA0, #557FDF, #2EA14D)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              Login
-            </h2>
+  if (error) {
+    return (
+      <div className="flex flex-col lg:flex-row h-screen bg-black text-white font-poppins">
+        {/* Left side - Branding */}
+        <div className="hidden lg:flex flex-1 flex-col justify-center items-center text-center p-8">
+          <h1
+            className="text-4xl font-bold bg-clip-text text-transparent leading-tight"
+            style={{
+              backgroundImage: 'linear-gradient(to right, #E2453E, #557FDF, #2EA14D, #D1B712)',
+            }}
+          >
+            Welcome to the Activity Point Management Portal
+          </h1>
+          <p
+            className="mt-7 text-lg bg-clip-text text-transparent tracking-wide"
+            style={{
+              backgroundImage: 'linear-gradient(to right, #A24DA0, #557FDF, #2EA14D)',
+            }}
+          >
+            Track. <span>Verify.</span> Achieve.
+          </p>
+        </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col space-y-6 w-full items-center">
-              <div className="flex flex-col w-full px-4 sm:w-3/4 items-start">
-                <label htmlFor="email" className="text-sm mb-1">Email address</label>
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="px-4 py-2 text-white placeholder-gray-500 w-full"
-                  style={{
-                    backgroundColor: 'rgba(212, 212, 212, 0.14)',
-                    border: '1px solid #424242',
-                  }}
-                  required
-                />
+        {/* Right side - Error */}
+        <div className="flex-1 flex justify-center items-center p-6 sm:p-8">
+          <div className="relative w-full max-w-[500px] h-auto min-h-[80vh] p-6 sm:p-8 flex flex-col justify-center items-center gap-6 text-center bg-none lg:bg-[url('/src/assets/border.png')] bg-no-repeat bg-center bg-[length:100%_100%]">
+            <div className="w-full flex flex-col items-center">
+              <div className="mb-4 p-4 bg-red-900 bg-opacity-50 border border-red-700 rounded text-red-200 text-sm">
+                {error}
               </div>
-
-              <div className="flex flex-col w-full px-4 sm:w-3/4 items-start">
-                <label htmlFor="password" className="text-sm mb-1">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="px-4 py-2 text-white placeholder-gray-500 w-full"
-                  style={{
-                    backgroundColor: 'rgba(212, 212, 212, 0.14)',
-                    border: '1px solid #424242',
-                  }}
-                  required
-                />
-              </div>
-
-              <div className="flex flex-col w-full px-4 sm:w-3/4 items-start">
-                <label htmlFor="role" className="text-sm mb-1">Role</label>
-                <select
-                  id="role"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="px-4 py-2 text-white w-full"
-                  style={{
-                    backgroundColor: 'rgba(212, 212, 212, 0.14)',
-                    border: '1px solid #424242',
-                  }}
-                >
-                  <option value="Student" className="text-black">Student</option>
-                  <option value="Faculty" className="text-black">Faculty</option>
-                  <option value="Event Organizer" className="text-black">Event Organizer</option>
-                </select>
-              </div>
-
               <button
-                type="submit"
-                className="w-3/4 sm:w-1/2 py-2 mt-6 mb-6 text-white font-semibold cursor-pointer"
+                onClick={() => window.location.reload()}
+                className="mt-4 px-6 py-2 rounded font-semibold text-white transition-all"
                 style={{
                   backgroundImage: 'linear-gradient(to right, #E2453E, #557FDF)',
                 }}
               >
-                Login
+                Try Again
               </button>
-            </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 };
 
 export default LoginPage;

@@ -1,62 +1,119 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Cards from "../components/Cards";
+import { getRejectedRequests, viewProofDocument } from "../utils/student";
 
-const rejectedData = [
-  {
-    title: "AI Workshop Participation",
-    date: "2024-05-12",
-    reason: "Incomplete documentation provided.",
-  },
-  {
-    title: "Tech Fest Volunteering",
-    date: "2024-06-01",
-    reason: "Activity hours exceeded the allowed limit.",
-  },
-  {
-    title: "Hackathon Winner",
-    date: "2024-04-20",
-    reason: "Certificate not verified by authority.",
-  },
-  {
-    title: "Open Source Contribution",
-    date: "2024-03-15",
-    reason: "GitHub link missing.",
-  },
-];
+interface RejectedItem {
+  point_id: number | string;
+  event_name: string;
+  event_date: string;
+  points: number;
+  event_type: string;
+  status: string;
+  rejection_reason?: string;
+}
 
-const RejectedRequests: React.FC = () => {
+export default function RejectedRequests(): React.ReactElement {
+  const navigate = useNavigate();
+  const [rejectedItems, setRejectedItems] = useState<RejectedItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRejected = async () => {
+      try {
+        setLoading(true);
+        const data = await getRejectedRequests();
+        setRejectedItems(Array.isArray(data) ? data : []);
+      } catch (err: any) {
+        setError(err.message || "Failed to load rejected entries.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRejected();
+  }, []);
+
   const formatDate = (dateStr: string) => {
+    if (!dateStr) return "N/A";
     const date = new Date(dateStr);
-    return date.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "numeric",
-      year: "numeric",
-    }); // => D/M/YYYY format
+    return isNaN(date.getTime()) ? dateStr : date.toLocaleDateString("en-GB");
   };
 
-  return (
-    <div className="min-h-screen bg-black text-white px-4 py-8 flex flex-col items-center">
-      <h2 className="text-2xl font-bold bg-gradient-to-r from-[#E2453D] to-[#557FDF] text-transparent bg-clip-text mb-8">
-        Rejected Requests
-      </h2>
+  if (loading) return <div className="text-white text-center mt-20 font-mono">Loading data...</div>;
 
-      <div className="w-full max-w-6xl flex flex-col items-center">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-30 justify-center">
-          {rejectedData.map((req, idx) => (
-            <div key={idx} className="w-[290px] sm:w-[350px]">
-              {idx === 0 ? (
-                <h3 className="text-base font-medium mb-5 text-left">Title</h3>
-              ) : (
-                <div className="h-6 mb-5" />
-              )}
-              <Cards title={req.title} date={formatDate(req.date)} status="Resubmit" />
-              <p className="text-sm text-white mt-2 ml-2">*{req.reason}</p>
+  return (
+    <div className="flex min-h-screen bg-[#0d1117] text-white">
+      <main className="flex-grow px-4 sm:px-6 lg:px-8 py-10 w-full">
+        <section className="max-w-6xl mx-auto flex flex-col items-center">
+          
+          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#E2453D] to-[#557FDF] text-transparent bg-clip-text mb-8 tracking-tight">
+            Rejected Requests
+          </h2>
+
+          {error && <div className="text-red-400 bg-red-950/40 p-4 rounded-xl border border-red-900 mb-6">{error}</div>}
+
+          {!error && rejectedItems.length === 0 ? (
+            <div className="bg-[#161b22] border border-gray-800 p-8 rounded-2xl text-center max-w-sm w-full shadow-xl">
+              <p className="text-gray-400 font-medium">Clear record! No rejected applications found.</p>
             </div>
-          ))}
-        </div>
-      </div>
+          ) : (
+            <div className="w-full">
+              <div className="text-gray-500 font-mono text-xs uppercase tracking-wider mb-4 px-1">
+                Rejected Items ({rejectedItems.length})
+              </div>
+
+              {/* Responsive Layout Grid Tile System with clean asymmetrical layout margins */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                {rejectedItems.map((item, idx) => (
+                  <div 
+                    key={item.point_id || idx} 
+                    className="bg-[#161b22]/40 border border-gray-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl relative overflow-hidden"
+                  >
+                    <div>
+                      <Cards
+                        title={item.event_name}
+                        date={formatDate(item.event_date)}
+                        status="Resubmit"
+                        points={item.points}
+                        category={item.event_type}
+                      />
+                      
+                      {/* Reason Container Content Area Box */}
+                      <div className="mt-3 bg-red-950/20 border border-red-900/30 rounded-xl p-3">
+                        <span className="text-[11px] font-bold text-red-400 uppercase tracking-widest block mb-0.5">
+                          Advisor Rejection Reason
+                        </span>
+                        <p className="text-xs sm:text-sm text-gray-300 italic">
+                          "{item.rejection_reason || "No explicit comments provided by faculty."}"
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Footer Multi-Action Trigger Row Segment links layout */}
+                    <div className="mt-4 pt-3 border-t border-gray-800/80 flex items-center justify-between gap-2">
+                      <button
+                        onClick={() => viewProofDocument(item.point_id)}
+                        className="text-xs font-semibold text-gray-400 hover:text-gray-200 transition-colors"
+                      >
+                        View PDF Link
+                      </button>
+                      
+                      <button
+                        onClick={() => navigate('/submit-activity', { state: { editRecord: item } })}
+                        className="bg-gradient-to-r from-[#E2453D] to-[#557FDF] text-xs font-bold text-white px-4 py-2 rounded-lg hover:opacity-90 shadow active:scale-95 transition-all cursor-pointer"
+                      >
+                        Fix & Resubmit
+                      </button>
+                    </div>
+
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      </main>
     </div>
   );
-};
-
-export default RejectedRequests;
+}

@@ -1,77 +1,52 @@
-import {useState, useEffect} from 'react'
 import { useNavigate } from 'react-router-dom';
-import Profile from '../components/Profile'
+import Profile from '../components/Profile';
 
-const applicationButtons = [
-  { label: 'Submit Requests', route: '/submit-requests' },
-  { label: 'Allocated Requests', route: '/allocated-requests' },
-  { label: 'Revoked Allocations', route: '/revoked-allocations' },
+const organizerActionButtons = [
+  { label: 'Submit Requests', route: '/event-organizer-submit' },
+  { label: 'Allocated Requests', route: '/event-organizer-allocated' },
+  { label: 'Revoked Allocation', route: '/event-organizer-revoked' },
 ];
 
-type OrganizerProfile = {
-    name: string,
-    rollno: string,
-    department: string,
-    faAssigned: string;
-}
+type EventOrganizerDashboardProps = {
+  setIsLoggedIn: (val: boolean) => void;
+};
 
-type DashboardData = {
-    profile: OrganizerProfile,
-}
-type OrganizerDashboardProps = {
-     setIsLoggedIn: (val:boolean) => void;
-}
+export default function EventOrganizerDashboard({ setIsLoggedIn }: EventOrganizerDashboardProps) {
+  const navigate = useNavigate();
 
-export default function OrganizerDashboard( {setIsLoggedIn}: OrganizerDashboardProps) {
-    const [data, setData] = useState<DashboardData | null>(null);
-    const [loading, setLoading] = useState(true);
+  return (
+    <div className="flex flex-col min-h-screen bg-[#0d1117]">
+      {/* Top Profile Header Layer Banner */}
+      <header className="w-full overflow-hidden">
+        <Profile setIsLoggedIn={setIsLoggedIn} user="Event Organizer" />
+      </header>
 
-    const navigate = useNavigate();
+      {/* Main Layout Area - Formatted with identical padding and alignments as student/faculty layouts */}
+      <main className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
+        
+        {/* Symmetric Action Button Flex Grid Box Container matching image_da7749.png styles */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full max-w-4xl px-2">
+          {organizerActionButtons.map(({ label, route }) => (
+            <button
+              key={label}
+              onClick={() => navigate(route)}
+              className="w-full sm:w-64 rounded-xl px-6 py-4 text-white font-bold text-center transition-all bg-gradient-to-r from-[#E2453D] to-[#557FDF] hover:opacity-95 hover:scale-[1.02] active:scale-[0.98] shadow-lg cursor-pointer text-sm sm:text-base tracking-wide"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
-    useEffect(() => {
-        fetch('/dashboard.json')
-        .then(res => res.json())
-        .then((data: DashboardData) => {
-            setData(data);
-            setLoading(false);
-        })
-        .catch(err => {
-            console.error("Failed to fetch dashboard data", err);
-            setLoading(false);
-        });
-    }, []);
+      </main>
 
-    if (loading) return <div className="text-white p-4">Loading Dashboard...</div>;
-    if (!data) return <div className="text-red-400 p-4">Error loading dashboard</div>;
-    return (
-        <>
-            <header className="w-full overflow-hidden relative top-0 max-h-inherit">
-                <Profile setIsLoggedIn={setIsLoggedIn} user="Event Organizer"/>
-            </header>
-            <main className="w-full mt-15 mb-23">
-                <section className='ml-[20%]'>
-                    <h2 className="text-2xl font-bold text-white mb-10 ml-5 mt-5">Applications</h2>
-                    <nav className="flex flex-col mb-10 ml-5 gap-5 max-w-xl ">
-                        {applicationButtons.map(({ label, route }) => (
-                        <button
-                            key={label}
-                            onClick={() => navigate(route)}
-                            className="w-80 rounded-2xl px-6 py-3 text-white font-semibold transition-all bg-gradient-to-r from-[#E2453D] to-[#557FDF] hover:opacity-90 hover:cursor-pointer"
-                        >
-                            {label}
-                        </button>
-                        ))}
-                    </nav>
-                </section>    
-            </main>
-            <footer className="absolute bottom-0 mt-auto px-6 py-[32px] bg-gradient-to-b from-[#241515] to-[#141a2e] border-t-[2px] border-[rgba(38,134,255,0.4)] w-full min-h-17 ">
-                <div className="absolute top-[-2px] left-[-2px]">
-                <div className={'w-45 h-6 bg-[rgba(38,134,255,0.4)]'} style={{ clipPath: 'polygon(0 0, 0 100%, 100% 0)' }}>
-                    <div className={'relative bottom-[2px] w-45 h-6 bg-black'} style={{ clipPath: 'polygon(0 0, 0 100%, 100% 0)' }} />
-                </div>
-                </div>
-            </footer>
-        </>    
-
-    )
+      {/* Styled App Footer Canvas Accent Vector */}
+      <footer className="mt-auto px-6 py-8 bg-gradient-to-b from-[#241515] to-[#141a2e] border-t-[2px] border-[rgba(38,134,255,0.4)] w-full min-h-16 relative">
+        <div className="absolute top-[-2px] left-[-2px]">
+          <div className="w-45 h-6 bg-[rgba(38,134,255,0.4)]" style={{ clipPath: 'polygon(0 0, 0 100%, 100% 0)' }}>
+            <div className="relative bottom-[2px] w-45 h-6 bg-black" style={{ clipPath: 'polygon(0 0, 0 100%, 100% 0)' }} />
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
 }
