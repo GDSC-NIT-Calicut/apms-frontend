@@ -64,7 +64,8 @@ export default function Profile({ compact = false, setIsLoggedIn, graduationElig
   const formattedOrganization = toTitleCase(rawOrganization);
 
   return (
-    <header className="relative w-full overflow-hidden">
+    /* Global Fix: Auto-hides large headers on mobile, but preserves compact profile inside sidebar mobile drawer */
+    <header className={`relative w-full overflow-hidden ${!compact ? 'hidden md:block' : ''}`}>
       {/* Main Adaptive Layout Wrapper Frame - Restored to static top grid alignments */}
       <div
         className={`relative flex flex-col sm:flex-row items-center sm:items-start justify-between px-6 sm:px-8 py-6 text-white
@@ -147,15 +148,12 @@ export default function Profile({ compact = false, setIsLoggedIn, graduationElig
                     <span>{formattedOrganization}</span>
                   </div>
                 )}
-
-
               </dl>
             </section>
           )}
         </div>
 
         {/* Right Section: Core Utility Action Triggers */}
-        {/* Adjusted padding top context configuration matching stable header tracking margins */}
         <div className="flex flex-col items-center sm:items-end gap-3 z-10 w-full sm:w-auto sm:pt-2">
           {/* Logout Action Button */}
           <button
@@ -189,7 +187,6 @@ export default function Profile({ compact = false, setIsLoggedIn, graduationElig
             </div>
           )}
         </div>
-
       </div>
     </header>
   );
