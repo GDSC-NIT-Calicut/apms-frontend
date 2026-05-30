@@ -19,7 +19,7 @@ export default function RemoveSingleUserModal({ isOpen, onClose, onSuccess }: Re
     const trimmed = value.trim();
     if (!trimmed) return 'Please enter an email address';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return 'Please enter a valid email address';
-    if (!trimmed.toLowerCase().endsWith('@nit.ac.in')) return 'Only nit.ac.in email addresses are allowed';
+    if (!trimmed.toLowerCase().endsWith('@nitc.ac.in')) return 'Only nitc.ac.in email addresses are allowed';
     return null;
   };
 
@@ -79,7 +79,7 @@ export default function RemoveSingleUserModal({ isOpen, onClose, onSuccess }: Re
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="user@nit.ac.in"
+              placeholder="user@nitc.ac.in"
               className="w-full bg-[#0d1117] border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500"
               required
             />
@@ -88,7 +88,7 @@ export default function RemoveSingleUserModal({ isOpen, onClose, onSuccess }: Re
           <div className="bg-[#0d1117] border border-gray-800 rounded-xl p-4">
             <p className="text-xs font-semibold text-gray-400 mb-2">Important</p>
             <p className="text-xs text-gray-500">
-              Only <span className="font-semibold">nit.ac.in</span> email addresses may be removed here. Super admin and dummy faculty cannot be deleted.
+              Only <span className="font-semibold">nitc.ac.in</span> email addresses may be removed here. Super admin and dummy faculty cannot be deleted.
             </p>
           </div>
 

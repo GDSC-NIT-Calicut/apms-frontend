@@ -239,7 +239,7 @@ export const bulkRemoveUsers = async (file: File): Promise<any> => {
  * Remove a single user by email
  * Route: DELETE /api/admin/remove-user
  * Input: email
- * Note: Only nit.ac.in email addresses are accepted
+ * Note: Only nitc.ac.in email addresses are accepted
  */
 export const removeSingleUser = async (email: string): Promise<any> => {
   try {
