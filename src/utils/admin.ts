@@ -241,6 +241,7 @@ export const bulkRemoveUsers = async (file: File): Promise<any> => {
  * Input: email
  * Note: Only nitc.ac.in email addresses are accepted
  */
+// Inside your src/utils/admin.ts file:
 export const removeSingleUser = async (email: string): Promise<any> => {
   try {
     const response = await apiFetch('/api/admin/remove-user', {

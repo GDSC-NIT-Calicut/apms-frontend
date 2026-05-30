@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { removeSingleUser } from '../../utils/admin'; // Verify path back to your utils folder
 
 type RemoveSingleUserModalProps = {
   isOpen: boolean;
@@ -19,23 +20,10 @@ export default function RemoveSingleUserModal({ isOpen, onClose, onSuccess }: Re
       setLoading(true);
       setError(null);
 
-      // Explicitly matching the POST convention with body configurations
-      const response = await fetch('/api/admin/remove-user', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email.trim() }),
-      });
+      // Use the robust utility function from admin.ts
+      await removeSingleUser(email.trim());
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to remove user');
-      }
-
-      alert('User removed cleanly successfully!');
+      alert('User removed successfully!');
       setEmail('');
       onSuccess();
       onClose();
