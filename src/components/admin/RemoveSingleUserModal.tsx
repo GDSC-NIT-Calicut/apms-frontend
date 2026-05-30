@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { removeSingleUser } from '../../utils/admin'; // Verify path back to your utils folder
+import { removeSingleUser } from '../../utils/admin'; // Double-check this relative path points to your admin.ts utility
 
 type RemoveSingleUserModalProps = {
   isOpen: boolean;
@@ -20,10 +20,10 @@ export default function RemoveSingleUserModal({ isOpen, onClose, onSuccess }: Re
       setLoading(true);
       setError(null);
 
-      // Use the robust utility function from admin.ts
+      // 🌟 FIX: Instead of raw fetch(), call your clean apiFetch utility function
       await removeSingleUser(email.trim());
 
-      alert('User removed successfully!');
+      alert('User removed cleanly and successfully!');
       setEmail('');
       onSuccess();
       onClose();
