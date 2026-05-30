@@ -11,6 +11,7 @@ import EditEventOrganizerModal from '../components/admin/EditEventOrganizerModal
 import EditAdminModal from '../components/admin/EditAdminModal';
 import BulkUploadModal from '../components/admin/BulkUploadModal';
 import BulkRemoveModal from '../components/admin/BulkRemoveModal';
+import RemoveSingleUserModal from '../components/admin/RemoveSingleUserModal';
 
 type AdminDashboardProps = {
   setIsLoggedIn: (val: boolean) => void;
@@ -21,7 +22,7 @@ type ModalType =
   | 'addFaculty' | 'editFaculty' | 'bulkAddFaculty'
   | 'addEventOrganizer' | 'editEventOrganizer' | 'bulkAddEventOrganizers'
   | 'addAdmin' | 'editAdmin'
-  | 'bulkRemoveUsers' | null;
+  | 'bulkRemoveUsers' | 'removeSingleUser' | null;
 
 export default function AdminDashboard({ setIsLoggedIn }: AdminDashboardProps) {
   const { profile, loading, error } = useUserProfile();
@@ -195,13 +196,21 @@ export default function AdminDashboard({ setIsLoggedIn }: AdminDashboardProps) {
             <h2 className="text-xl sm:text-2xl font-bold mb-1 text-white flex items-center gap-2">
               <span className="text-red-400">🗑️</span> Remove Users
             </h2>
-            <p className="text-gray-400 text-xs sm:text-sm mb-6">Bulk remove users from any role (CSV file)</p>
-            <button
-              onClick={() => setActiveModal('bulkRemoveUsers')}
-              className="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold rounded-xl transition text-sm sm:text-base"
-            >
-              🗑️ Bulk Remove Users (CSV)
-            </button>
+            <p className="text-gray-400 text-xs sm:text-sm mb-6">Remove a single user by email or remove multiple users from any role with CSV.</p>
+            <div className="space-y-3">
+              <button
+                onClick={() => setActiveModal('removeSingleUser')}
+                className="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold rounded-xl transition text-sm sm:text-base"
+              >
+                🧾 Remove Single User
+              </button>
+              <button
+                onClick={() => setActiveModal('bulkRemoveUsers')}
+                className="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold rounded-xl transition text-sm sm:text-base"
+              >
+                🗑️ Bulk Remove Users (CSV)
+              </button>
+            </div>
           </div>
         </div>
       </main>
@@ -271,6 +280,11 @@ export default function AdminDashboard({ setIsLoggedIn }: AdminDashboardProps) {
 
       <BulkRemoveModal 
         isOpen={activeModal === 'bulkRemoveUsers'} 
+        onClose={handleModalClose}
+        onSuccess={handleModalSuccess}
+      />
+      <RemoveSingleUserModal
+        isOpen={activeModal === 'removeSingleUser'}
         onClose={handleModalClose}
         onSuccess={handleModalSuccess}
       />

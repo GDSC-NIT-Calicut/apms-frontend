@@ -235,28 +235,25 @@ export const bulkRemoveUsers = async (file: File): Promise<any> => {
   }
 };
 
-// ============ Edit User Details APIs ============
-
 /**
- * Edit student details
- * Route: PATCH /api/admin/edit/student
- * Input: email (required), and any of: student_name, roll_number, department, program, batch_year, fa_name
- * Note: department and program are extracted from roll_number if provided
+ * Remove a single user by email
+ * Route: DELETE /api/admin/remove-user
+ * Input: email
+ * Note: Only nit.ac.in email addresses are accepted
  */
-export const editStudentDetails = async (payload: EditStudentPayload): Promise<any> => {
-  try {
-    const response = await apiFetch('/api/admin/edit/student', {
-      method: 'PATCH',
-      body: JSON.stringify(payload),
-    });
-    return await handleApiResponse(response, 'Edit student details');
-  } catch (error) {
-    console.error('Edit student error:', error);
-    throw error;
-  }
+ export const removeSingleUser = async (email: string): Promise<any> => {
+   try {
+     const response = await apiFetch('/api/admin/remove-user', {
+       method: 'DELETE',
+       body: JSON.stringify({ email }),
+     });
+     return await handleApiResponse(response, 'Remove single user');
+   } catch (error) {
+     console.error('Remove single user error:', error);
+     throw error;
+   }
 };
 
-/**
  * Edit faculty advisor details
  * Route: PATCH /api/admin/edit/faculty
  * Input: email (required), and any of: fa_name, department
