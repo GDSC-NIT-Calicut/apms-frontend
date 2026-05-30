@@ -246,6 +246,10 @@ export const removeSingleUser = async (email: string): Promise<any> => {
   try {
     const response = await apiFetch('/api/admin/remove-user', {
       method: 'POST',
+      // 🌟 FIX: Add the Content-Type header so the Express JSON parser triggers
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ email }),
     });
     return await handleApiResponse(response, 'Remove single user');
