@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { editStudentDetails, EditStudentPayload } from '../../utils/admin';
+import type { EditStudentPayload } from '../../utils/admin';
+import { editStudentDetails } from '../../utils/admin';
 
 type EditStudentModalProps = {
   isOpen: boolean;

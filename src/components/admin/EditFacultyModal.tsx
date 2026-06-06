@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { editFacultyDetails, EditFacultyPayload } from '../../utils/admin';
+import type { EditFacultyPayload } from '../../utils/admin';
+import { editFacultyDetails } from '../../utils/admin';
 
 type EditFacultyModalProps = {
   isOpen: boolean;
