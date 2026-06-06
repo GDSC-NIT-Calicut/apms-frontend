@@ -4,6 +4,13 @@
  */
 
 import { apiFetch, handleApiResponse } from './api';
+import { getCachedData, setCacheData, getCacheTTL } from './cache';
+
+const STUDENT_PENDING_KEY = 'student_pending_requests';
+const STUDENT_APPROVED_KEY = 'student_approved_requests';
+const STUDENT_REJECTED_KEY = 'student_rejected_requests';
+const STUDENT_TTL_ENV = 'VITE_STUDENT_CACHE_TTL_MIN';
+const STUDENT_TTL_DEFAULT = 3; // minutes
 
 export interface SubmitActivityPayload {
   event_name: string;
@@ -48,14 +55,33 @@ export const submitStudentActivity = async (payload: SubmitActivityPayload): Pro
  */
 export const getPendingRequests = async (): Promise<any[]> => {
   try {
-    const response = await apiFetch('/api/student/requests/pending', {
-      method: 'GET',
-    });
+    const response = await apiFetch('/api/student/requests/pending', { method: 'GET' });
     return await handleApiResponse(response, 'Fetch pending requests');
   } catch (error) {
     console.error('Get pending requests error:', error);
     throw error;
   }
+};
+
+/**
+ * Cached wrapper for pending requests. Returns metadata for UI.
+ */
+export const getPendingRequestsCached = async (bypassCache = false): Promise<{ data: any[]; fromCache: boolean; lastUpdated?: number }> => {
+  const cacheKey = STUDENT_PENDING_KEY;
+  if (!bypassCache) {
+    const cached = getCachedData<any[]>(cacheKey);
+    if (cached) {
+      // read raw entry for timestamp
+      const raw = sessionStorage.getItem(cacheKey);
+      const entry = raw ? JSON.parse(raw) : null;
+      return { data: cached, fromCache: true, lastUpdated: entry?.timestamp };
+    }
+  }
+
+  const data = await getPendingRequests();
+  const ttlMs = getCacheTTL(STUDENT_TTL_ENV, STUDENT_TTL_DEFAULT);
+  setCacheData(cacheKey, data, ttlMs);
+  return { data, fromCache: false, lastUpdated: Date.now() };
 };
 
 
@@ -73,6 +99,23 @@ export const getApprovedRequests = async (): Promise<any[]> => {
   }
 };
 
+export const getApprovedRequestsCached = async (bypassCache = false): Promise<{ data: any[]; fromCache: boolean; lastUpdated?: number }> => {
+  const cacheKey = STUDENT_APPROVED_KEY;
+  if (!bypassCache) {
+    const cached = getCachedData<any[]>(cacheKey);
+    if (cached) {
+      const raw = sessionStorage.getItem(cacheKey);
+      const entry = raw ? JSON.parse(raw) : null;
+      return { data: cached, fromCache: true, lastUpdated: entry?.timestamp };
+    }
+  }
+
+  const data = await getApprovedRequests();
+  const ttlMs = getCacheTTL(STUDENT_TTL_ENV, STUDENT_TTL_DEFAULT);
+  setCacheData(cacheKey, data, ttlMs);
+  return { data, fromCache: false, lastUpdated: Date.now() };
+};
+
 /**
  * Fetch Student Rejected Requests
  * Route: GET /api/student/requests/rejected
@@ -85,6 +128,23 @@ export const getRejectedRequests = async (): Promise<any[]> => {
     console.error('Get rejected requests error:', error);
     throw error;
   }
+};
+
+export const getRejectedRequestsCached = async (bypassCache = false): Promise<{ data: any[]; fromCache: boolean; lastUpdated?: number }> => {
+  const cacheKey = STUDENT_REJECTED_KEY;
+  if (!bypassCache) {
+    const cached = getCachedData<any[]>(cacheKey);
+    if (cached) {
+      const raw = sessionStorage.getItem(cacheKey);
+      const entry = raw ? JSON.parse(raw) : null;
+      return { data: cached, fromCache: true, lastUpdated: entry?.timestamp };
+    }
+  }
+
+  const data = await getRejectedRequests();
+  const ttlMs = getCacheTTL(STUDENT_TTL_ENV, STUDENT_TTL_DEFAULT);
+  setCacheData(cacheKey, data, ttlMs);
+  return { data, fromCache: false, lastUpdated: Date.now() };
 };
 
 /**

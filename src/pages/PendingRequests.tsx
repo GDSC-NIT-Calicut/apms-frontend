@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Cards from "../components/Cards";
-import { getPendingRequests, viewProofDocument } from "../utils/student";
+import { getPendingRequestsCached, viewProofDocument } from "../utils/student";
+import useClientPagination from "../hooks/useClientPagination";
+import { getTimeAgo } from "../utils/time";
 
 interface PendingItem {
   point_id: number | string;
@@ -12,28 +14,34 @@ interface PendingItem {
 }
 
 export default function PendingRequests(): React.ReactElement {
-  const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
+  const [pendingItemsRaw, setPendingItemsRaw] = useState<PendingItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [fromCache, setFromCache] = useState(false);
+
+  const fetchRequests = async (bypass = false) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await getPendingRequestsCached(bypass);
+      const data = res?.data || [];
+      setPendingItemsRaw(Array.isArray(data) ? data : []);
+      setLastUpdated(res.lastUpdated || null);
+      setFromCache(res.fromCache);
+    } catch (err: any) {
+      setError(err.message || "Failed to load your pending requests.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getPendingRequests();
-        
-        // Safety check to ensure the backend payload response is parsed as a true iterable array
-        setPendingItems(Array.isArray(data) ? data : []);
-      } catch (err: any) {
-        setError(err.message || "Failed to load your pending requests.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchRequests();
   }, []);
+
+  // client-side pagination for incremental render
+  const { items: pendingItems, loadMore, hasMore } = useClientPagination<PendingItem>(pendingItemsRaw, 15);
 
   // Format utility to convert raw database dates safely into localized clean display strings
   const formatDate = (dateStr: string) => {
@@ -61,9 +69,27 @@ export default function PendingRequests(): React.ReactElement {
         <section className="max-w-6xl mx-auto w-full flex flex-col items-center">
           
           {/* Theme Gradient Page Title */}
-          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#E2453D] to-[#557FDF] text-transparent bg-clip-text mb-8 tracking-tight text-center">
-            Pending Requests
-          </h2>
+          <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#E2453D] to-[#557FDF] text-transparent bg-clip-text tracking-tight">
+              Pending Requests
+            </h2>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-gray-300">
+              <span className="inline-flex items-center gap-2 rounded-full border border-gray-700 bg-white/5 px-3 py-2">
+                {fromCache ? '💾 Cached' : '🔄 Live'}
+              </span>
+              {lastUpdated && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-gray-700 bg-white/5 px-3 py-2">
+                  Updated {new Date(lastUpdated).toLocaleTimeString('en-GB')}
+                </span>
+              )}
+              <button
+                onClick={() => fetchRequests(true)}
+                className="rounded-lg border border-gray-700 bg-[#111827] px-3 py-2 text-white transition hover:bg-[#1f2937]"
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
 
           {/* Runtime Error Information Alert Box */}
           {error && (
@@ -128,6 +154,11 @@ export default function PendingRequests(): React.ReactElement {
                   </div>
                 ))}
               </div>
+              {hasMore && (
+                <div className="w-full flex justify-center mt-6">
+                  <button onClick={loadMore} className="px-4 py-2 bg-blue-600 rounded text-white">Load more</button>
+                </div>
+              )}
             </div>
           )}
         </section>

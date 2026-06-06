@@ -264,13 +264,30 @@ export const removeSingleUser = async (email: string): Promise<any> => {
  * Route: PATCH /api/admin/edit/student
  * Input: email (required), and any of: student_name, roll_number, department, program, batch_year, fa_name
  */
-export const editStudentDetails = async (payload: EditStudentPayload): Promise<any> => {
+export const editStudentDetails = async (
+  payload: EditStudentPayload,
+  confirmDepartmentChange = false
+): Promise<any> => {
   try {
-    const response = await apiFetch('/api/admin/edit/student', {
+    const endpoint = `/api/admin/edit/student${confirmDepartmentChange ? '?confirmDepartmentChange=true' : ''}`;
+    const response = await apiFetch(endpoint, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     });
-    return await handleApiResponse(response, 'Edit student details');
+    const data = await response.json().catch(() => ({}));
+
+    if (response.status === 409) {
+      return {
+        conflict: true,
+        ...data,
+      };
+    }
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Edit student details failed');
+    }
+
+    return data;
   } catch (error) {
     console.error('Edit student error:', error);
     throw error;
@@ -282,13 +299,30 @@ export const editStudentDetails = async (payload: EditStudentPayload): Promise<a
  * Route: PATCH /api/admin/edit/faculty
  * Input: email (required), and any of: fa_name, department
  */
-export const editFacultyDetails = async (payload: EditFacultyPayload): Promise<any> => {
+export const editFacultyDetails = async (
+  payload: EditFacultyPayload,
+  confirmDepartmentChange = false
+): Promise<any> => {
   try {
-    const response = await apiFetch('/api/admin/edit/faculty', {
+    const endpoint = `/api/admin/edit/faculty${confirmDepartmentChange ? '?confirmDepartmentChange=true' : ''}`;
+    const response = await apiFetch(endpoint, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     });
-    return await handleApiResponse(response, 'Edit faculty details');
+    const data = await response.json().catch(() => ({}));
+
+    if (response.status === 409) {
+      return {
+        conflict: true,
+        ...data,
+      };
+    }
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Edit faculty details failed');
+    }
+
+    return data;
   } catch (error) {
     console.error('Edit faculty error:', error);
     throw error;

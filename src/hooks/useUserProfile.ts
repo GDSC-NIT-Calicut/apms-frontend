@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getUserDetails } from '../utils/user';
+import { getCachedData, setCacheData, getCacheTTL } from '../utils/cache';
 
 export interface UserProfilePayload {
   role: string;
@@ -32,21 +33,68 @@ interface UseUserProfileResult {
   profile: UserProfilePayload | null;
   loading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
+  refetch: (bypassCache?: boolean) => Promise<void>;
+  cacheStatus?: {
+    isFromCache: boolean;
+    expiresAt?: number;
+  };
+  lastUpdated?: number | null;
 }
+
+const CACHE_KEY = 'user_profile_cache';
+const CACHE_TTL_ENV = 'VITE_OTHER_ROLES_CACHE_ACTIVE_TIME';
+const DEFAULT_CACHE_TTL_MINUTES = 10;
 
 export const useUserProfile = (): UseUserProfileResult => {
   const [profile, setProfile] = useState<UserProfilePayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cacheStatus, setCacheStatus] = useState<{ isFromCache: boolean; expiresAt?: number }>({
+    isFromCache: false,
+  });
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
-  const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async (bypassCache = false) => {
     try {
       setLoading(true);
       setError(null);
-      
+
+      // Check cache first (unless explicitly bypassed)
+      if (!bypassCache) {
+        const cachedProfile = getCachedData<UserProfilePayload>(CACHE_KEY);
+        if (cachedProfile) {
+          console.log('Using cached user profile');
+          setProfile(cachedProfile);
+          
+          const cached = sessionStorage.getItem(CACHE_KEY);
+          if (cached) {
+            const entry = JSON.parse(cached);
+            setCacheStatus({ isFromCache: true, expiresAt: entry.expiresAt });
+            setLastUpdated(entry?.timestamp || Date.now());
+          }
+
+          if (cachedProfile?.role) {
+            localStorage.setItem('role', cachedProfile.role);
+          }
+          setLoading(false);
+          return;
+        }
+      } else {
+        console.log('Bypassing cache - fetching fresh data');
+      }
+
+      // Cache miss or manual refetch - fetch from API
       const data = (await getUserDetails()) as unknown as UserProfilePayload;
       setProfile(data);
+
+      // Store in cache
+      const cacheTTL = getCacheTTL(CACHE_TTL_ENV, DEFAULT_CACHE_TTL_MINUTES);
+      setCacheData(CACHE_KEY, data, cacheTTL);
+      
+      // Calculate expiration time for UI
+      const expiresAt = Date.now() + cacheTTL;
+      setCacheStatus({ isFromCache: false, expiresAt });
+      setLastUpdated(Date.now());
 
       if (data?.role) {
         localStorage.setItem('role', data.role);
@@ -55,6 +103,7 @@ export const useUserProfile = (): UseUserProfileResult => {
       console.error('Failed to fetch user profile:', err);
       setError(err.message || 'Failed to load user profile');
       setProfile(null);
+      setCacheStatus({ isFromCache: false });
     } finally {
       setLoading(false);
     }
@@ -73,7 +122,7 @@ export const useUserProfile = (): UseUserProfileResult => {
     };
   }, [fetchProfile]);
 
-  return { profile, loading, error, refetch: fetchProfile };
+  return { profile, loading, error, refetch: fetchProfile, cacheStatus, lastUpdated };
 };
 
 const normalizeProfileRole = (rawRole?: string | null) => {

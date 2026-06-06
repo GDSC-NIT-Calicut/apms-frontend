@@ -1,4 +1,10 @@
 import { apiFetch, handleApiResponse } from './api';
+import { getCachedData, setCacheData, getCacheTTL } from './cache';
+
+const EVENT_ALLOCATED_KEY = 'eo_allocated_allocations';
+const EVENT_REVOKED_KEY = 'eo_revoked_allocations';
+const EVENT_TTL_ENV = 'VITE_STUDENT_CACHE_TTL_MIN';
+const EVENT_TTL_DEFAULT = 3; // minutes
 
 export interface PointAllocationPayload {
   event_name: string;
@@ -124,6 +130,23 @@ export const getAllocatedAllocations = async (): Promise<any[]> => {
   }
 };
 
+export const getAllocatedAllocationsCached = async (bypassCache = false): Promise<{ data: any[]; fromCache: boolean; lastUpdated?: number }> => {
+  const cacheKey = EVENT_ALLOCATED_KEY;
+  if (!bypassCache) {
+    const cached = getCachedData<any[]>(cacheKey);
+    if (cached) {
+      const raw = sessionStorage.getItem(cacheKey);
+      const entry = raw ? JSON.parse(raw) : null;
+      return { data: cached, fromCache: true, lastUpdated: entry?.timestamp };
+    }
+  }
+
+  const data = await getAllocatedAllocations();
+  const ttlMs = getCacheTTL(EVENT_TTL_ENV, EVENT_TTL_DEFAULT);
+  setCacheData(cacheKey, data, ttlMs);
+  return { data, fromCache: false, lastUpdated: Date.now() };
+};
+
 /**
  * 6) Fetch All Revoked Event Allocation Folders
  * Route: GET /api/event-organizer/allocations/revoked
@@ -138,6 +161,23 @@ export const getRevokedAllocations = async (): Promise<any[]> => {
     console.error('Get revoked logs error:', error);
     throw error;
   }
+};
+
+export const getRevokedAllocationsCached = async (bypassCache = false): Promise<{ data: any[]; fromCache: boolean; lastUpdated?: number }> => {
+  const cacheKey = EVENT_REVOKED_KEY;
+  if (!bypassCache) {
+    const cached = getCachedData<any[]>(cacheKey);
+    if (cached) {
+      const raw = sessionStorage.getItem(cacheKey);
+      const entry = raw ? JSON.parse(raw) : null;
+      return { data: cached, fromCache: true, lastUpdated: entry?.timestamp };
+    }
+  }
+
+  const data = await getRevokedAllocations();
+  const ttlMs = getCacheTTL(EVENT_TTL_ENV, EVENT_TTL_DEFAULT);
+  setCacheData(cacheKey, data, ttlMs);
+  return { data, fromCache: false, lastUpdated: Date.now() };
 };
 
 /**
