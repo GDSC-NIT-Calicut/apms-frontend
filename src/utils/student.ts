@@ -20,22 +20,40 @@ export interface SubmitActivityPayload {
   proof: File;
 }
 
+export interface ResubmitActivityPayload extends Omit<SubmitActivityPayload, 'proof'> {
+  point_id: number | string;
+  proof?: File | null; // Optional on resubmissions
+}
+
+/**
+ * Sanitizes input dates to a clean YYYY-MM-DD string format
+ * This stops local system timezones from shifting dates back or forward inside Postgres.
+ */
+const cleanDateString = (dateInput: string): string => {
+  if (!dateInput) return '';
+  try {
+    const d = new Date(dateInput);
+    return isNaN(d.getTime()) ? dateInput : d.toISOString().split('T')[0];
+  } catch {
+    return dateInput;
+  }
+};
+
 /**
  * Submit New Activity Points Request
  * Route: POST /api/student/requests/submit
- * Expects multipart/form-data payload body format
  */
 export const submitStudentActivity = async (payload: SubmitActivityPayload): Promise<any> => {
   try {
     const formData = new FormData();
+    
+    // 💥 CRITICAL ORDER: Append text fields first, files last
     formData.append('event_name', payload.event_name);
-    formData.append('event_date', payload.event_date);
+    formData.append('event_date', cleanDateString(payload.event_date)); // Standardized date string
     formData.append('event_type', payload.event_type);
     formData.append('points', payload.points.toString());
-    formData.append('proof', payload.proof); // Maps cleanly to upload.single('proof')
+    formData.append('proof', payload.proof); 
 
-    // Note: Do NOT set Content-Type header manually when sending FormData;
-    // the browser must automatically define boundary lines.
     const response = await apiFetch('/api/student/requests/submit', {
       method: 'POST',
       body: formData,
@@ -49,10 +67,37 @@ export const submitStudentActivity = async (payload: SubmitActivityPayload): Pro
 };
 
 /**
- * Fetch Student Pending Requests
- * Route: GET /api/student/requests/pending
- * Requires authentication cookie to be present
+ * Resubmit a Rejected Activity Points Request
+ * Route: PUT /api/student/requests/resubmit
  */
+export const resubmitStudentActivity = async (payload: ResubmitActivityPayload): Promise<any> => {
+  try {
+    const formData = new FormData();
+    
+    // 💥 CRITICAL ORDER: Text fields go into the stream first so Multer parses them instantly
+    formData.append('point_id', payload.point_id.toString());
+    formData.append('event_name', payload.event_name);
+    formData.append('event_date', cleanDateString(payload.event_date)); // Standardized date string
+    formData.append('event_type', payload.event_type);
+    formData.append('points', payload.points.toString());
+    
+    if (payload.proof) {
+      formData.append('proof', payload.proof); // File goes last
+    }
+
+    const response = await apiFetch('/api/student/requests/resubmit', {
+      method: 'PUT',
+      body: formData, // No URL parameters! Sent entirely inside the multi-part body payload
+    });
+
+    return await handleApiResponse(response, 'Resubmit student activity request');
+  } catch (error) {
+    console.error('Resubmit student activity error:', error);
+    throw error;
+  }
+};
+
+// --- View requests and download utilities remain unchanged ---
 export const getPendingRequests = async (): Promise<any[]> => {
   try {
     const response = await apiFetch('/api/student/requests/pending', { method: 'GET' });
@@ -63,32 +108,22 @@ export const getPendingRequests = async (): Promise<any[]> => {
   }
 };
 
-/**
- * Cached wrapper for pending requests. Returns metadata for UI.
- */
 export const getPendingRequestsCached = async (bypassCache = false): Promise<{ data: any[]; fromCache: boolean; lastUpdated?: number }> => {
   const cacheKey = STUDENT_PENDING_KEY;
   if (!bypassCache) {
     const cached = getCachedData<any[]>(cacheKey);
     if (cached) {
-      // read raw entry for timestamp
-      const raw = sessionStorage.getItem(cacheKey);
-      const entry = raw ? JSON.parse(raw) : null;
+      const rawCache = sessionStorage.getItem(cacheKey);
+      const entry = rawCache ? JSON.parse(rawCache) : null;
       return { data: cached, fromCache: true, lastUpdated: entry?.timestamp };
     }
   }
-
   const data = await getPendingRequests();
   const ttlMs = getCacheTTL(STUDENT_TTL_ENV, STUDENT_TTL_DEFAULT);
   setCacheData(cacheKey, data, ttlMs);
   return { data, fromCache: false, lastUpdated: Date.now() };
 };
 
-
-/**
- * Fetch Student Approved Requests
- * Route: GET /api/student/requests/approved
- */
 export const getApprovedRequests = async (): Promise<any[]> => {
   try {
     const response = await apiFetch('/api/student/requests/approved', { method: 'GET' });
@@ -104,22 +139,17 @@ export const getApprovedRequestsCached = async (bypassCache = false): Promise<{ 
   if (!bypassCache) {
     const cached = getCachedData<any[]>(cacheKey);
     if (cached) {
-      const raw = sessionStorage.getItem(cacheKey);
-      const entry = raw ? JSON.parse(raw) : null;
+      const rawCache = sessionStorage.getItem(cacheKey);
+      const entry = rawCache ? JSON.parse(rawCache) : null;
       return { data: cached, fromCache: true, lastUpdated: entry?.timestamp };
     }
   }
-
   const data = await getApprovedRequests();
   const ttlMs = getCacheTTL(STUDENT_TTL_ENV, STUDENT_TTL_DEFAULT);
   setCacheData(cacheKey, data, ttlMs);
   return { data, fromCache: false, lastUpdated: Date.now() };
 };
 
-/**
- * Fetch Student Rejected Requests
- * Route: GET /api/student/requests/rejected
- */
 export const getRejectedRequests = async (): Promise<any[]> => {
   try {
     const response = await apiFetch('/api/student/requests/rejected', { method: 'GET' });
@@ -135,41 +165,28 @@ export const getRejectedRequestsCached = async (bypassCache = false): Promise<{ 
   if (!bypassCache) {
     const cached = getCachedData<any[]>(cacheKey);
     if (cached) {
-      const raw = sessionStorage.getItem(cacheKey);
-      const entry = raw ? JSON.parse(raw) : null;
+      const rawCache = sessionStorage.getItem(cacheKey);
+      const entry = rawCache ? JSON.parse(rawCache) : null;
       return { data: cached, fromCache: true, lastUpdated: entry?.timestamp };
     }
   }
-
   const data = await getRejectedRequests();
   const ttlMs = getCacheTTL(STUDENT_TTL_ENV, STUDENT_TTL_DEFAULT);
   setCacheData(cacheKey, data, ttlMs);
   return { data, fromCache: false, lastUpdated: Date.now() };
 };
 
-/**
- * View/Download Proof Document
- * Route: GET /api/student/requests/proof?point_id=X
- * Streams down file binary data directly into local browser blobs
- */
 export const viewProofDocument = async (pointId: number | string): Promise<void> => {
   try {
     const response = await apiFetch(`/api/student/requests/proof?point_id=${pointId}`, {
       method: 'GET',
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to retrieve proof document from storage server.');
-    }
-
-    // Convert streamed network response cleanly to a binary block format blob
+    if (!response.ok) throw new Error('Failed to retrieve proof document.');
     const fileBlob = await response.blob();
     const blobUrl = window.URL.createObjectURL(fileBlob);
-    
-    // Open standard system viewport tab to let browser natively render the streamed PDF
     window.open(blobUrl, '_blank');
   } catch (error) {
     console.error('View proof document error:', error);
-    alert('Could not open file. Verify your connection or that a valid PDF file exists.');
+    alert('Could not open file.');
   }
 };
