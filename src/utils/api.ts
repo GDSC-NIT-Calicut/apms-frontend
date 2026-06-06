@@ -19,7 +19,7 @@ export const defaultFetchOptions = {
 /**
  * Handles API responses and errors consistently
  * @param response - Fetch response object
- * @param operation - Name of the operation for error messages
+ * @param context - Name of the operation for error messages
  * @returns Parsed JSON response
  */
 export const handleApiResponse = async (response: Response, context: string) => {
@@ -46,6 +46,7 @@ export const handleApiResponse = async (response: Response, context: string) => 
 
 /**
  * Generic API fetch wrapper
+ * Automatically adjusts headers for JSON vs Multipart/FormData payloads
  * @param endpoint - API endpoint path
  * @param options - Fetch options to merge with defaults
  * @returns API response
@@ -55,13 +56,26 @@ export const apiFetch = async (
   options: RequestInit = {}
 ) => {
   const url = `${API_BASE_URL}${endpoint}`;
+
+  // 1. Combine our default headers with any custom headers passed down
+  const mergedHeaders = {
+    ...defaultFetchOptions.headers,
+    ...options.headers,
+  };
+
+  // 2. CRITICAL FIX: If the payload is a FormData object containing binary files,
+  // we must remove 'Content-Type' completely. This tells the browser to process it 
+  // as 'multipart/form-data' and generate the strict WebKitFormBoundary markers dynamically.
+  if (options.body instanceof FormData) {
+    delete (mergedHeaders as any)['Content-Type'];
+  }
+
+  // 3. Fire off the structured request
   const response = await fetch(url, {
     ...defaultFetchOptions,
     ...options,
-    headers: {
-      ...defaultFetchOptions.headers,
-      ...options.headers,
-    },
+    headers: mergedHeaders,
   });
+
   return response;
 };
