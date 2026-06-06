@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { editStudentDetails } from '../../utils/admin';
+import { editStudentDetails, EditStudentPayload } from '../../utils/admin';
 
 type EditStudentModalProps = {
   isOpen: boolean;
@@ -18,6 +18,9 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess }: EditStu
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<any>(null);
+  const [pendingPayload, setPendingPayload] = useState<EditStudentPayload | null>(null);
 
   if (!isOpen) return null;
 
@@ -33,6 +36,8 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess }: EditStu
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setWarning(null);
+    setConfirmation(null);
     setLoading(true);
 
     try {
@@ -42,14 +47,51 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess }: EditStu
       if (formData.batch_year) submitData.batch_year = parseInt(formData.batch_year);
       if (formData.fa_name) submitData.fa_name = formData.fa_name;
 
-      await editStudentDetails(submitData);
-      setSuccess('Student updated successfully!');
+      setPendingPayload(submitData);
+      const result = await editStudentDetails(submitData);
+
+      if (result?.conflict) {
+        setConfirmation(result);
+        return;
+      }
+
+      setSuccess(result.message || 'Student updated successfully!');
+      setWarning(result.warning || null);
       setFormData({ email: '', student_name: '', roll_number: '', batch_year: '', fa_name: '' });
       setTimeout(() => {
         onSuccess();
       }, 1500);
     } catch (err: any) {
       setError(err.message || 'Failed to update student');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmUpdate = async () => {
+    if (!pendingPayload) return;
+    setError(null);
+    setSuccess(null);
+    setWarning(null);
+    setLoading(true);
+
+    try {
+      const result = await editStudentDetails(pendingPayload, true);
+      if (result?.conflict) {
+        setError(result.message || 'Confirmation still required to update student');
+        return;
+      }
+
+      setSuccess(result.message || 'Student updated successfully!');
+      setWarning(result.warning || null);
+      setConfirmation(null);
+      setPendingPayload(null);
+      setFormData({ email: '', student_name: '', roll_number: '', batch_year: '', fa_name: '' });
+      setTimeout(() => {
+        onSuccess();
+      }, 1500);
+    } catch (err: any) {
+      setError(err.message || 'Failed to confirm student update');
     } finally {
       setLoading(false);
     }
@@ -64,6 +106,19 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess }: EditStu
         {error && (
           <div className="bg-red-950/40 border border-red-900/50 text-red-400 p-3 rounded-xl text-xs font-medium mb-4">
             {error}
+          </div>
+        )}
+
+        {confirmation && (
+          <div className="bg-orange-950/40 border border-orange-900/50 text-orange-300 p-3 rounded-xl text-xs font-medium mb-4">
+            <div className="font-semibold mb-2">⚠️ {confirmation.message || 'Department change requires confirmation'}</div>
+            <div className="text-[11px] leading-5">{confirmation.warning}</div>
+          </div>
+        )}
+
+        {warning && (
+          <div className="bg-orange-950/40 border border-orange-900/50 text-orange-300 p-3 rounded-xl text-xs font-medium mb-4">
+            {warning}
           </div>
         )}
 
@@ -139,18 +194,37 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess }: EditStu
             <button
               type="button"
               disabled={loading}
-              onClick={onClose}
+              onClick={() => {
+                if (confirmation) {
+                  setConfirmation(null);
+                  setPendingPayload(null);
+                  setWarning(null);
+                } else {
+                  onClose();
+                }
+              }}
               className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-xs font-bold rounded-xl uppercase tracking-wider transition-colors disabled:opacity-50"
             >
-              Cancel
+              {confirmation ? 'Cancel' : 'Cancel'}
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-xs font-bold rounded-xl uppercase tracking-wider transition-opacity hover:opacity-90 disabled:opacity-50"
-            >
-              {loading ? 'Updating...' : 'Update'}
-            </button>
+            {confirmation ? (
+              <button
+                type="button"
+                disabled={loading}
+                onClick={handleConfirmUpdate}
+                className="flex-1 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-xs font-bold rounded-xl uppercase tracking-wider transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {loading ? 'Confirming...' : 'Proceed with Dummy FA'}
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-xs font-bold rounded-xl uppercase tracking-wider transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {loading ? 'Updating...' : 'Update'}
+              </button>
+            )}
           </div>
         </form>
       </div>

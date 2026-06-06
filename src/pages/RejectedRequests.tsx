@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Cards from "../components/Cards";
-import { getRejectedRequests, viewProofDocument } from "../utils/student";
+import { getRejectedRequestsCached, viewProofDocument } from "../utils/student";
+import useClientPagination from "../hooks/useClientPagination";
+import { getTimeAgo } from "../utils/time";
 
 interface RejectedItem {
   point_id: number | string;
@@ -15,24 +17,32 @@ interface RejectedItem {
 
 export default function RejectedRequests(): React.ReactElement {
   const navigate = useNavigate();
-  const [rejectedItems, setRejectedItems] = useState<RejectedItem[]>([]);
+  const [rejectedItemsRaw, setRejectedItemsRaw] = useState<RejectedItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [fromCache, setFromCache] = useState(false);
+
+  const fetchRejected = async (bypass = false) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await getRejectedRequestsCached(bypass);
+      setRejectedItemsRaw(Array.isArray(res.data) ? res.data : []);
+      setLastUpdated(res.lastUpdated || null);
+      setFromCache(res.fromCache);
+    } catch (err: any) {
+      setError(err.message || "Failed to load rejected entries.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchRejected = async () => {
-      try {
-        setLoading(true);
-        const data = await getRejectedRequests();
-        setRejectedItems(Array.isArray(data) ? data : []);
-      } catch (err: any) {
-        setError(err.message || "Failed to load rejected entries.");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchRejected();
   }, []);
+
+  const { items: rejectedItems, loadMore, hasMore } = useClientPagination<RejectedItem>(rejectedItemsRaw, 15);
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "N/A";
@@ -47,9 +57,24 @@ export default function RejectedRequests(): React.ReactElement {
       <main className="flex-grow px-4 sm:px-6 lg:px-8 py-10 w-full">
         <section className="max-w-6xl mx-auto flex flex-col items-center">
           
-          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#E2453D] to-[#557FDF] text-transparent bg-clip-text mb-8 tracking-tight">
-            Rejected Requests
-          </h2>
+          <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#E2453D] to-[#557FDF] text-transparent bg-clip-text tracking-tight">
+              Rejected Requests
+            </h2>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-gray-300">
+              {lastUpdated && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-gray-700 bg-white/5 px-3 py-2">
+                  Last updated {getTimeAgo(lastUpdated)}
+                </span>
+              )}
+              <button
+                onClick={() => fetchRejected(true)}
+                className="rounded-lg border border-gray-700 bg-[#111827] px-3 py-2 text-white transition hover:bg-[#1f2937]"
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
 
           {error && <div className="text-red-400 bg-red-950/40 p-4 rounded-xl border border-red-900 mb-6">{error}</div>}
 
@@ -110,6 +135,11 @@ export default function RejectedRequests(): React.ReactElement {
                   </div>
                 ))}
               </div>
+              {hasMore && (
+                <div className="w-full flex justify-center mt-6">
+                  <button onClick={loadMore} className="px-4 py-2 bg-blue-600 rounded text-white">Load more</button>
+                </div>
+              )}
             </div>
           )}
         </section>

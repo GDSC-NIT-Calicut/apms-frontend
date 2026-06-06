@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { clearCache, getCachedData, getCacheTTL, setCacheData } from '../utils/cache';
+import useClientPagination from '../hooks/useClientPagination';
+import { getTimeAgo } from '../utils/time';
 
 type PendingRequest = {
   point_id: number;
@@ -16,29 +19,56 @@ type FacultyPendingApprovalProps = {
   setIsLoggedIn: (val: boolean) => void;
 };
 
+const FACULTY_PENDING_CACHE_KEY = 'faculty_pending_requests_cache';
+const FACULTY_CACHE_TTL_ENV = 'VITE_OTHER_ROLES_CACHE_ACTIVE_TIME';
+const DEFAULT_CACHE_TTL_MINUTES = 10;
+
 export default function FacultyPendingApproval({ /*setIsLoggedIn*/ }: FacultyPendingApprovalProps) {
-  const [requests, setRequests] = useState<PendingRequest[]>([]);
+  const [requestsRaw, setRequestsRaw] = useState<PendingRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState<{ [key: number]: string }>({});
   const [showRejectModal, setShowRejectModal] = useState<number | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [fromCache, setFromCache] = useState(false);
+  const { items, loadMore, hasMore } = useClientPagination<PendingRequest>(requestsRaw, 15);
 
   useEffect(() => {
     fetchPendingRequests();
   }, []);
 
-  const fetchPendingRequests = async () => {
+  const fetchPendingRequests = async (bypass = false) => {
     try {
       setLoading(true);
       setError(null);
+
+      if (!bypass) {
+        const cachedData = getCachedData<PendingRequest[]>(FACULTY_PENDING_CACHE_KEY);
+        if (cachedData && cachedData.length) {
+          const rawCache = sessionStorage.getItem(FACULTY_PENDING_CACHE_KEY);
+          const cacheEntry = rawCache ? JSON.parse(rawCache) : null;
+          setRequestsRaw(cachedData);
+          setLastUpdated(cacheEntry?.timestamp || Date.now());
+          setFromCache(true);
+          setLoading(false);
+          return;
+        }
+      }
+
       const response = await fetch('/api/faculty/requests/pending', { method: 'GET', credentials: 'include' });
       if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const data = await response.json();
-      setRequests(Array.isArray(data) ? data : data.requests || []);
+      const list = Array.isArray(data) ? data : data.requests || [];
+      setRequestsRaw(list);
+
+      const cacheTTL = getCacheTTL(FACULTY_CACHE_TTL_ENV, DEFAULT_CACHE_TTL_MINUTES);
+      setCacheData(FACULTY_PENDING_CACHE_KEY, list, cacheTTL);
+      setLastUpdated(Date.now());
+      setFromCache(false);
     } catch (err: any) {
       setError(err.message || 'Failed to load pending requests');
-      setRequests([]);
+      setRequestsRaw([]);
     } finally {
       setLoading(false);
     }
@@ -54,7 +84,8 @@ export default function FacultyPendingApproval({ /*setIsLoggedIn*/ }: FacultyPen
         body: JSON.stringify({ point_id: pointId }),
       });
       if (!response.ok) throw new Error('Failed to approve request');
-      setRequests(requests.filter(r => r.point_id !== pointId));
+      clearCache(FACULTY_PENDING_CACHE_KEY);
+      setRequestsRaw(prev => prev.filter(r => r.point_id !== pointId));
     } catch (err: any) {
       alert('Error approving request: ' + err.message);
     } finally {
@@ -77,7 +108,8 @@ export default function FacultyPendingApproval({ /*setIsLoggedIn*/ }: FacultyPen
         body: JSON.stringify({ point_id: pointId, rejection_reason: reason }),
       });
       if (!response.ok) throw new Error('Failed to reject request');
-      setRequests(requests.filter(r => r.point_id !== pointId));
+      clearCache(FACULTY_PENDING_CACHE_KEY);
+      setRequestsRaw(prev => prev.filter(r => r.point_id !== pointId));
       setShowRejectModal(null);
       setRejectReason({});
     } catch (err: any) {
@@ -102,19 +134,36 @@ export default function FacultyPendingApproval({ /*setIsLoggedIn*/ }: FacultyPen
     <div className="w-full min-h-screen bg-[#0d1117]">
       {/* Container is nested cleanly inside your global application layout shell framework */}
       <main className="flex-grow p-4 sm:p-6 lg:p-10 flex flex-col min-w-0 text-white max-w-6xl mx-auto w-full">
-        <h1 className="text-3xl sm:text-4xl font-extrabold mb-6 bg-gradient-to-r from-[#E2453D] via-[#916296] to-[#557FDF] bg-clip-text text-transparent tracking-tight">
-          Pending Approval
-        </h1>
+        <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-[#E2453D] via-[#916296] to-[#557FDF] bg-clip-text text-transparent tracking-tight">
+              Pending Approval
+            </h1>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-300 mt-2">
+              {lastUpdated && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-gray-700 bg-white/5 px-3 py-2">
+                  Last updated {getTimeAgo(lastUpdated)}
+                </span>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => fetchPendingRequests(true)}
+            className="rounded-lg border border-gray-700 bg-[#111827] px-4 py-2 text-white transition hover:bg-[#1f2937]"
+          >
+            Refresh
+          </button>
+        </div>
 
         {error && <div className="bg-red-950/40 border border-red-900/50 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm">{error}</div>}
 
-        {requests.length === 0 ? (
+        {items.length === 0 ? (
           <div className="text-center text-gray-500 py-16 bg-[#161b22]/30 border border-gray-800 rounded-2xl">
             <p className="text-base sm:text-lg">No pending student requests waiting for approval.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 w-full">
-            {requests.map(request => (
+            {items.map(request => (
               <div key={request.point_id} className="bg-[#161b22]/40 border border-gray-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all hover:border-blue-500/50">
                 <div>
                   <div className="mb-4 pb-3 border-b border-gray-800/80">
@@ -165,6 +214,11 @@ export default function FacultyPendingApproval({ /*setIsLoggedIn*/ }: FacultyPen
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        {hasMore && (
+          <div className="w-full flex justify-center mt-6">
+            <button onClick={loadMore} className="px-4 py-2 bg-blue-600 rounded text-white">Load more</button>
           </div>
         )}
       </main>

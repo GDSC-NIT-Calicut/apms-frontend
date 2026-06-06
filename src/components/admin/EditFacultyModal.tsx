@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { editFacultyDetails } from '../../utils/admin';
+import { editFacultyDetails, EditFacultyPayload } from '../../utils/admin';
 
 type EditFacultyModalProps = {
   isOpen: boolean;
@@ -18,6 +18,9 @@ export default function EditFacultyModal({ isOpen, onClose, onSuccess }: EditFac
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<any>(null);
+  const [pendingPayload, setPendingPayload] = useState<EditFacultyPayload | null>(null);
 
   if (!isOpen) return null;
 
@@ -33,6 +36,8 @@ export default function EditFacultyModal({ isOpen, onClose, onSuccess }: EditFac
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setWarning(null);
+    setConfirmation(null);
     setLoading(true);
 
     try {
@@ -40,14 +45,51 @@ export default function EditFacultyModal({ isOpen, onClose, onSuccess }: EditFac
       if (formData.fa_name) submitData.fa_name = formData.fa_name;
       if (formData.department) submitData.department = formData.department;
 
-      await editFacultyDetails(submitData);
-      setSuccess('Faculty updated successfully!');
+      setPendingPayload(submitData);
+      const result = await editFacultyDetails(submitData);
+
+      if (result?.conflict) {
+        setConfirmation(result);
+        return;
+      }
+
+      setSuccess(result.message || 'Faculty updated successfully!');
+      setWarning(result.warning || null);
       setFormData({ email: '', fa_name: '', department: '' });
       setTimeout(() => {
         onSuccess();
       }, 1500);
     } catch (err: any) {
       setError(err.message || 'Failed to update faculty');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmUpdate = async () => {
+    if (!pendingPayload) return;
+    setError(null);
+    setSuccess(null);
+    setWarning(null);
+    setLoading(true);
+
+    try {
+      const result = await editFacultyDetails(pendingPayload, true);
+      if (result?.conflict) {
+        setError(result.message || 'Confirmation still required to update faculty');
+        return;
+      }
+
+      setSuccess(result.message || 'Faculty updated successfully!');
+      setWarning(result.warning || null);
+      setConfirmation(null);
+      setPendingPayload(null);
+      setFormData({ email: '', fa_name: '', department: '' });
+      setTimeout(() => {
+        onSuccess();
+      }, 1500);
+    } catch (err: any) {
+      setError(err.message || 'Failed to confirm faculty update');
     } finally {
       setLoading(false);
     }
@@ -62,6 +104,22 @@ export default function EditFacultyModal({ isOpen, onClose, onSuccess }: EditFac
         {error && (
           <div className="bg-red-950/40 border border-red-900/50 text-red-400 p-3 rounded-xl text-xs font-medium mb-4">
             {error}
+          </div>
+        )}
+
+        {confirmation && (
+          <div className="bg-orange-950/40 border border-orange-900/50 text-orange-300 p-3 rounded-xl text-xs font-medium mb-4">
+            <div className="font-semibold mb-2">⚠️ {confirmation.message || 'Department change requires confirmation'}</div>
+            <div className="text-[11px] leading-5">{confirmation.warning}</div>
+            {confirmation.activeStudentCount != null && (
+              <div className="mt-2 text-[11px] text-amber-200">Affected students: {confirmation.activeStudentCount}</div>
+            )}
+          </div>
+        )}
+
+        {warning && (
+          <div className="bg-orange-950/40 border border-orange-900/50 text-orange-300 p-3 rounded-xl text-xs font-medium mb-4">
+            {warning}
           </div>
         )}
 
@@ -118,18 +176,37 @@ export default function EditFacultyModal({ isOpen, onClose, onSuccess }: EditFac
             <button
               type="button"
               disabled={loading}
-              onClick={onClose}
+              onClick={() => {
+                if (confirmation) {
+                  setConfirmation(null);
+                  setPendingPayload(null);
+                  setWarning(null);
+                } else {
+                  onClose();
+                }
+              }}
               className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-xs font-bold rounded-xl uppercase tracking-wider transition-colors disabled:opacity-50"
             >
-              Cancel
+              {confirmation ? 'Cancel' : 'Cancel'}
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-xs font-bold rounded-xl uppercase tracking-wider transition-opacity hover:opacity-90 disabled:opacity-50"
-            >
-              {loading ? 'Updating...' : 'Update'}
-            </button>
+            {confirmation ? (
+              <button
+                type="button"
+                disabled={loading}
+                onClick={handleConfirmUpdate}
+                className="flex-1 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-xs font-bold rounded-xl uppercase tracking-wider transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {loading ? 'Confirming...' : 'Proceed & Change Department'}
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-xs font-bold rounded-xl uppercase tracking-wider transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {loading ? 'Updating...' : 'Update'}
+              </button>
+            )}
           </div>
         </form>
       </div>

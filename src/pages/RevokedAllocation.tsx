@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Cards from "../components/Cards";
 import AllocationActionModal from "../components/AllocationActionModal";
-import { getRevokedAllocations, downloadAllocationFile } from "../utils/eventOrganizer";
+import { getRevokedAllocationsCached, downloadAllocationFile } from "../utils/eventOrganizer";
+import useClientPagination from "../hooks/useClientPagination";
+import { getTimeAgo } from "../utils/time";
 
 interface BackendAllocationItem {
   allocation_id: number;
@@ -15,9 +17,12 @@ interface BackendAllocationItem {
 }
 
 export default function RevokedAllocation(): React.ReactElement {
-  const [revokedItems, setRevokedItems] = useState<BackendAllocationItem[]>([]);
+  const [revokedItemsRaw, setRevokedItemsRaw] = useState<BackendAllocationItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [fromCache, setFromCache] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<BackendAllocationItem | null>(null);
@@ -26,12 +31,17 @@ export default function RevokedAllocation(): React.ReactElement {
     fetchRevokedData();
   }, []);
 
-  const fetchRevokedData = async () => {
+  const { items, loadMore, hasMore } = useClientPagination<BackendAllocationItem>(revokedItemsRaw, 15);
+
+  const fetchRevokedData = async (bypass = false) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getRevokedAllocations();
-      setRevokedItems(Array.isArray(data) ? data : []);
+      const res = await getRevokedAllocationsCached(bypass);
+      const data = res?.data || [];
+      setRevokedItemsRaw(Array.isArray(data) ? data : []);
+      setLastUpdated(res.lastUpdated || null);
+      setFromCache(res.fromCache);
     } catch (err: any) {
       console.error("Failed to load revoked logs:", err);
       setError(err.message || "Failed to download revoked points allocation records.");
@@ -67,16 +77,22 @@ export default function RevokedAllocation(): React.ReactElement {
 
       {loading ? (
         <div className="text-center font-mono text-sm text-gray-500 py-20">Loading revoked ledger metrics tracking array...</div>
-      ) : revokedItems.length === 0 ? (
+      ) : items.length === 0 ? (
         <div className="text-center text-gray-500 py-16 bg-[#161b22]/30 border border-gray-800 rounded-2xl">
           <p className="text-base sm:text-lg font-medium">No historically revoked point buckets recorded on your account.</p>
         </div>
       ) : (
         <div className="w-full space-y-4">
-          <div className="text-gray-400 font-bold text-xs uppercase tracking-widest px-1">Revoked Distribution History</div>
+          <div className="flex items-center justify-between">
+            <div className="text-gray-400 font-bold text-xs uppercase tracking-widest px-1">Revoked Distribution History ({revokedItemsRaw.length})</div>
+            <div className="text-sm text-gray-400 flex items-center gap-3">
+              {lastUpdated && <span className="text-xs">Last updated {getTimeAgo(lastUpdated)}</span>}
+              <button onClick={() => fetchRevokedData(true)} className="px-3 py-1 bg-gray-800 rounded text-xs">Refresh</button>
+            </div>
+          </div>
 
           <div className="flex flex-col gap-4">
-            {revokedItems.map((item) => (
+            {items.map((item) => (
               /* Wrapped inside a relative container to overlay the absolute-positioned download action button */
               <div key={item.allocation_id} className="relative group w-full max-w-[500px]">
                 

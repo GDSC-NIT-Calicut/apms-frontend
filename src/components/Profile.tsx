@@ -3,6 +3,7 @@ import userIcon from '../assets/userIco.png';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../utils/auth';
 import { useUserProfile, formatProfileData } from '../hooks/useUserProfile';
+import { getTimeAgo } from '../utils/time';
 
 type ProfileProps = {
   compact?: boolean;
@@ -12,7 +13,7 @@ type ProfileProps = {
 };
 
 export default function Profile({ compact = false, setIsLoggedIn, graduationEligible }: ProfileProps) {
-  const { profile, loading, error } = useUserProfile();
+  const { profile, loading, error, refetch, lastUpdated } = useUserProfile();
   const [loggingOut, setLoggingOut] = useState(false);
   const navigate = useNavigate();
 
@@ -26,6 +27,7 @@ export default function Profile({ compact = false, setIsLoggedIn, graduationElig
         console.error('Logout error:', err);
       } finally {
         localStorage.clear();
+        sessionStorage.clear();
         setIsLoggedIn?.(false);
         navigate('/login', { replace: true });
       }
@@ -105,7 +107,6 @@ export default function Profile({ compact = false, setIsLoggedIn, graduationElig
             </section>
           ) : (
             <section className="flex flex-col items-center sm:items-start max-w-full overflow-hidden">
-              {/* Added adaptive padding-left on mobile viewports to leave room for the absolute hamburger icon buttons */}
               <h1 className="text-xl sm:text-2xl font-bold mt-1 mb-2 leading-snug bg-gradient-to-r from-[#E2453D] via-[#916296] to-[#557FDF] bg-clip-text text-transparent tracking-wide break-words text-center sm:text-left max-w-full pl-10 sm:pl-0">
                 Welcome, {formattedName}
               </h1>
@@ -185,6 +186,23 @@ export default function Profile({ compact = false, setIsLoggedIn, graduationElig
               >
                 {graduationEligible === 'Yes' ? 'Eligible' : 'Not Eligible'}
               </span>
+            </div>
+          )}
+
+          {/* Profile Refresh and Last Updated */}
+          {!compact && (
+            <div className="flex items-center justify-center sm:justify-end gap-3 text-xs text-gray-300 mt-2">
+              {lastUpdated && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 border border-gray-700">
+                  Last updated {getTimeAgo(lastUpdated)}
+                </span>
+              )}
+              <button
+                onClick={() => refetch(true)}
+                className="px-3 py-1 rounded bg-[#0d1117] border border-gray-700 hover:bg-[#15202b] transition"
+              >
+                Refresh profile
+              </button>
             </div>
           )}
         </div>

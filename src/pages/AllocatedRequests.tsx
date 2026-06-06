@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import EventCards from "../components/EventCards";
 import AllocationActionModal from "../components/AllocationActionModal";
-import { getAllocatedAllocations, revokeAllocationGroup, downloadAllocationFile } from "../utils/eventOrganizer";
+import { getAllocatedAllocationsCached, revokeAllocationGroup, downloadAllocationFile } from "../utils/eventOrganizer";
+import useClientPagination from "../hooks/useClientPagination";
+import { getTimeAgo } from "../utils/time";
 
 interface BackendAllocationFolder {
   allocation_id: number;
@@ -15,9 +17,11 @@ interface BackendAllocationFolder {
 }
 
 export default function AllocatedRequests(): React.ReactElement {
-  const [allocatedItems, setAllocatedItems] = useState<BackendAllocationFolder[]>([]);
+  const [allocatedItemsRaw, setAllocatedItemsRaw] = useState<BackendAllocationFolder[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [fromCache, setFromCache] = useState(false);
 
   // Modal configuration states
   const [modalOpen, setModalOpen] = useState(false);
@@ -28,12 +32,17 @@ export default function AllocatedRequests(): React.ReactElement {
     fetchAllocatedData();
   }, []);
 
-  const fetchAllocatedData = async () => {
+  const { items, loadMore, hasMore } = useClientPagination<BackendAllocationFolder>(allocatedItemsRaw, 15);
+
+  const fetchAllocatedData = async (bypass = false) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getAllocatedAllocations();
-      setAllocatedItems(Array.isArray(data) ? data : []);
+      const res = await getAllocatedAllocationsCached(bypass);
+      const data = res?.data || [];
+      setAllocatedItemsRaw(Array.isArray(data) ? data : []);
+      setLastUpdated(res.lastUpdated || null);
+      setFromCache(res.fromCache);
     } catch (err: any) {
       console.error("Failed to fetch allocated logs:", err);
       setError(err.message || "Failed to load active event allocations ledger.");
@@ -48,7 +57,7 @@ export default function AllocatedRequests(): React.ReactElement {
       if (!confirmRevoke) return;
       try {
         await revokeAllocationGroup(req.allocation_id);
-        fetchAllocatedData();
+        await fetchAllocatedData(true);
       } catch (err: any) {
         alert(err.message || "Failed to execute structural point revocation.");
       }
@@ -85,18 +94,22 @@ export default function AllocatedRequests(): React.ReactElement {
 
       {loading ? (
         <div className="text-center font-mono text-sm text-gray-500 py-20">Loading active point distributions roster...</div>
-      ) : allocatedItems.length === 0 ? (
+      ) : allocatedItemsRaw.length === 0 ? (
         <div className="text-center text-gray-500 py-16 bg-[#161b22]/30 border border-gray-800 rounded-2xl w-full">
           <p className="text-base sm:text-lg font-medium">No active student point distributions found on record.</p>
         </div>
       ) : (
-        <div className="w-full space-y-4">
+          <div className="w-full space-y-4">
           <div className="flex justify-between items-center px-1">
-            <h3 className="text-gray-400 font-bold text-xs uppercase tracking-widest">Active Allocated Folders ({allocatedItems.length})</h3>
+            <h3 className="text-gray-400 font-bold text-xs uppercase tracking-widest">Active Allocated Folders ({allocatedItemsRaw.length})</h3>
+            <div className="text-sm text-gray-400 flex items-center gap-3">
+              {lastUpdated && <span className="text-xs">Last updated {getTimeAgo(lastUpdated)}</span>}
+              <button onClick={() => fetchAllocatedData(true)} className="px-3 py-1 bg-gray-800 rounded text-xs">Refresh</button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-            {allocatedItems.map((req) => (
+            {items.map((req) => (
               <div key={req.allocation_id} className="h-full relative group">
                 {/* Embedded download badge link button matching item 7 requirements */}
                 <button 
@@ -117,6 +130,11 @@ export default function AllocatedRequests(): React.ReactElement {
                 />
               </div>
             ))}
+            {hasMore && (
+              <div className="w-full flex justify-center mt-6 col-span-full">
+                <button onClick={loadMore} className="px-4 py-2 bg-blue-600 rounded text-white">Load more</button>
+              </div>
+            )}
           </div>
         </div>
       )}
