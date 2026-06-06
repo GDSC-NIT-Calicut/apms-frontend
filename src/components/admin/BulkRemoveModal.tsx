@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react'; // 🌟 Added useRef
 import { bulkRemoveUsers } from '../../utils/admin';
 
 type BulkRemoveModalProps = {
@@ -13,6 +13,9 @@ export default function BulkRemoveModal({ isOpen, onClose, onSuccess }: BulkRemo
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // 🌟 1. Create a reference to target the hidden file input element
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   if (!isOpen) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,6 +26,8 @@ export default function BulkRemoveModal({ isOpen, onClose, onSuccess }: BulkRemo
     } else {
       setError('Please select a valid CSV file');
       setFile(null);
+      // 🌟 Clear DOM track on validation failure
+      if (e.target) e.target.value = '';
     }
   };
 
@@ -47,11 +52,22 @@ export default function BulkRemoveModal({ isOpen, onClose, onSuccess }: BulkRemo
       await bulkRemoveUsers(file);
       setSuccess('Users removed successfully!');
       setFile(null);
+
+      // 🌟 2. Clear the input value right away on a successful removal tracking pipeline
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
       setTimeout(() => {
         onSuccess();
       }, 1500);
     } catch (err: any) {
       setError(err.message || 'Failed to remove users');
+      
+      // 🌟 3. Clear out the input track on error so they can quickly pick a corrected version of the same file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } finally {
       setLoading(false);
     }
@@ -108,6 +124,7 @@ export default function BulkRemoveModal({ isOpen, onClose, onSuccess }: BulkRemo
               accept=".csv"
               onChange={handleFileChange}
               id="bulk_remove_csv"
+              ref={fileInputRef} // 🌟 4. Bind the ref here
               className="hidden"
             />
             <label

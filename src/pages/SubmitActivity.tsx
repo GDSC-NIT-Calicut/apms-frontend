@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import React, { useState, useRef } from 'react'; // 🌟 Added useRef
 import { useNavigate } from 'react-router-dom';
 import { submitStudentActivity } from '../utils/student';
 
 export default function SubmitActivity() {
   const navigate = useNavigate();
+  
+  // 🌟 1. Create a reference to target the hidden file input element
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState({
     title: '',
     date: '',
-    category: 'institute_level', // Default value safely matching point_category_enum
+    category: 'institute_level', 
     points: '',
     file: null as File | null,
   });
@@ -54,12 +58,30 @@ export default function SubmitActivity() {
       });
 
       setSuccessMessage('Activity request submitted successfully!');
-      // Delay navigation slightly so user sees the success state banner
+      
+      // 🌟 2. Clear out form inputs and file tracking state on success
+      setFormData({
+        title: '',
+        date: '',
+        category: 'institute_level',
+        points: '',
+        file: null,
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
       setTimeout(() => {
         navigate('/pending-requests');
       }, 1500);
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to submit the request. A duplicate pending/approved entry might exist.');
+      
+      // 🌟 3. CRITICAL: Clear the DOM path string value even on error!
+      // This allows them to quickly try re-selecting the exact same PDF file after making fixes.
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } finally {
       setLoading(false);
     }
@@ -172,6 +194,7 @@ export default function SubmitActivity() {
                   name="file"
                   type="file"
                   accept="application/pdf"
+                  ref={fileInputRef} // 🌟 4. Bound the ref tracking node here
                   className="hidden"
                   onChange={handleFileChange}
                 />

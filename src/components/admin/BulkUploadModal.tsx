@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react'; // 🌟 Added useRef
 import { bulkRegisterStudents, bulkRegisterFaculty, bulkRegisterEventOrganizers } from '../../utils/admin';
 
 type BulkUploadModalProps = {
@@ -40,6 +40,9 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess, type }: Bu
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  
+  // 🌟 1. Create a reference to target the hidden file input element
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
@@ -53,6 +56,8 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess, type }: Bu
     } else {
       setError('Please select a valid CSV file');
       setFile(null);
+      // 🌟 Clear DOM track on validation failure
+      if (e.target) e.target.value = '';
     }
   };
 
@@ -71,11 +76,22 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess, type }: Bu
       await template.api(file);
       setSuccess('File uploaded and processed successfully!');
       setFile(null);
+      
+      // 🌟 2. Clear the element value right away so it doesn't get stuck on error or re-try
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
       setTimeout(() => {
         onSuccess();
       }, 1500);
     } catch (err: any) {
       setError(err.message || 'Failed to upload file');
+      // 🌟 3. Crucial addition: Clear the file input tracking even on a failure!
+      // This lets them click upload, fix something in the same CSV file, and pick it again immediately.
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } finally {
       setLoading(false);
     }
@@ -135,6 +151,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess, type }: Bu
               accept=".csv"
               onChange={handleFileChange}
               id="bulk_csv_upload"
+              ref={fileInputRef} // 🌟 4. Bind the ref here
               className="hidden"
             />
             <label

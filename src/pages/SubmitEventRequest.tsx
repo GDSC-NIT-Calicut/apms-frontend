@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import React, { useState, useRef } from 'react'; // 🌟 Added useRef
 import { allocatePointsBulk } from '../utils/eventOrganizer';
 
 export default function SubmitEventRequest() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // 🌟 1. Create a reference to target the hidden file input element
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -21,6 +24,14 @@ export default function SubmitEventRequest() {
       setFormData(prev => ({ ...prev, file: files?.[0] || null }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  // 🌟 Helper to cleanly reset everything including the native DOM input
+  const handleClearForm = () => {
+    setFormData({ title: '', date: '', category: '', file: null });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -44,11 +55,19 @@ export default function SubmitEventRequest() {
       });
 
       setSuccess(`Successfully allocated points to ${responseData.students_allocated || 0} students!`);
-      setFormData({ title: '', date: '', category: '', file: null });
+      
+      // 🌟 2. Use our clear utility upon successful completion
+      handleClearForm();
+      
       setTimeout(() => setSuccess(null), 4000);
     } catch (err: any) {
       console.error('Submit points allocation failed:', err);
       setError(err.message || 'Failed to submit event metrics allocation file.');
+      
+      // 🌟 3. Clear file DOM path tracking on error so they can try re-uploading the fixed file immediately
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } finally {
       setLoading(false);
     }
@@ -113,6 +132,7 @@ export default function SubmitEventRequest() {
                 name="file"
                 type="file"
                 accept=".csv"
+                ref={fileInputRef} // 🌟 4. Bound the ref tracking node here
                 className="hidden"
                 onChange={handleChange}
               />
@@ -144,7 +164,7 @@ export default function SubmitEventRequest() {
             <button
               type="button"
               disabled={loading}
-              onClick={() => setFormData({ title: '', date: '', category: '', file: null })}
+              onClick={handleClearForm} // 🌟 5. Point directly to our full reset implementation
               className="flex-1 order-2 sm:order-1 py-3.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-300 font-bold rounded-xl border border-gray-700/60 transition-all uppercase text-xs tracking-wider cursor-pointer"
             >
               Clear Form
